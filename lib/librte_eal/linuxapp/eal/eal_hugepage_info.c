@@ -58,6 +58,7 @@
 #include "eal_internal_cfg.h"
 #include "eal_hugepages.h"
 #include "eal_filesystem.h"
+#include <fcntl.h>
 
 static const char sys_dir_path[] = "/sys/kernel/mm/hugepages";
 

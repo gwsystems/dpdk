@@ -1,6 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2017 Intel Corporation. All rights reserved.
+#   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -31,33 +31,8 @@
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-#
-# library name
-#
-LIB = librte_ethdev.a
+DIRS-$(CONFIG_RTE_EXEC_ENV_BSDAPP) += eal
+DIRS-$(CONFIG_RTE_EXEC_ENV_BSDAPP) += contigmem
+DIRS-$(CONFIG_RTE_EXEC_ENV_BSDAPP) += nic_uio
 
-CFLAGS += -O3
-CFLAGS += $(WERROR_FLAGS)
-
-EXPORT_MAP := rte_ethdev_version.map
-
-LIBABIVER := 6
-
-SRCS-y += rte_ethdev.c
-SRCS-y += rte_flow.c
-SRCS-y += rte_tm.c
-
-#
-# Export include files
-#
-SYMLINK-y-include += rte_ethdev.h
-SYMLINK-y-include += rte_ethdev_pci.h
-SYMLINK-y-include += rte_ethdev_vdev.h
-SYMLINK-y-include += rte_eth_ctrl.h
-SYMLINK-y-include += rte_dev_info.h
-SYMLINK-y-include += rte_flow.h
-SYMLINK-y-include += rte_flow_driver.h
-SYMLINK-y-include += rte_tm.h
-SYMLINK-y-include += rte_tm_driver.h
-
-include $(RTE_SDK)/mk/rte.lib.mk
+include $(RTE_SDK)/mk/rte.subdir.mk

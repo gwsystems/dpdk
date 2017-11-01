@@ -1,6 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2017 Intel Corporation. All rights reserved.
+#   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -29,35 +29,30 @@
 #   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-include $(RTE_SDK)/mk/rte.vars.mk
-
 #
-# library name
+# machine:
 #
-LIB = librte_ethdev.a
-
-CFLAGS += -O3
-CFLAGS += $(WERROR_FLAGS)
-
-EXPORT_MAP := rte_ethdev_version.map
-
-LIBABIVER := 6
-
-SRCS-y += rte_ethdev.c
-SRCS-y += rte_flow.c
-SRCS-y += rte_tm.c
-
+#   - can define ARCH variable (overridden by cmdline value)
+#   - can define CROSS variable (overridden by cmdline value)
+#   - define MACHINE_CFLAGS variable (overridden by cmdline value)
+#   - define MACHINE_LDFLAGS variable (overridden by cmdline value)
+#   - define MACHINE_ASFLAGS variable (overridden by cmdline value)
+#   - can define CPU_CFLAGS variable (overridden by cmdline value) that
+#     overrides the one defined in arch.
+#   - can define CPU_LDFLAGS variable (overridden by cmdline value) that
+#     overrides the one defined in arch.
+#   - can define CPU_ASFLAGS variable (overridden by cmdline value) that
+#     overrides the one defined in arch.
+#   - may override any previously defined variable
 #
-# Export include files
-#
-SYMLINK-y-include += rte_ethdev.h
-SYMLINK-y-include += rte_ethdev_pci.h
-SYMLINK-y-include += rte_ethdev_vdev.h
-SYMLINK-y-include += rte_eth_ctrl.h
-SYMLINK-y-include += rte_dev_info.h
-SYMLINK-y-include += rte_flow.h
-SYMLINK-y-include += rte_flow_driver.h
-SYMLINK-y-include += rte_tm.h
-SYMLINK-y-include += rte_tm_driver.h
 
-include $(RTE_SDK)/mk/rte.lib.mk
+# ARCH =
+# CROSS =
+# MACHINE_CFLAGS =
+# MACHINE_LDFLAGS =
+# MACHINE_ASFLAGS =
+# CPU_CFLAGS =
+# CPU_LDFLAGS =
+# CPU_ASFLAGS =
+
+MACHINE_CFLAGS = -march=i486

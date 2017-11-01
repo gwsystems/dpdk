@@ -1,6 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2017 Intel Corporation. All rights reserved.
+#   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -32,32 +32,21 @@
 include $(RTE_SDK)/mk/rte.vars.mk
 
 #
-# library name
+# module name and path
 #
-LIB = librte_ethdev.a
-
-CFLAGS += -O3
-CFLAGS += $(WERROR_FLAGS)
-
-EXPORT_MAP := rte_ethdev_version.map
-
-LIBABIVER := 6
-
-SRCS-y += rte_ethdev.c
-SRCS-y += rte_flow.c
-SRCS-y += rte_tm.c
+MODULE = contigmem
 
 #
-# Export include files
+# CFLAGS
 #
-SYMLINK-y-include += rte_ethdev.h
-SYMLINK-y-include += rte_ethdev_pci.h
-SYMLINK-y-include += rte_ethdev_vdev.h
-SYMLINK-y-include += rte_eth_ctrl.h
-SYMLINK-y-include += rte_dev_info.h
-SYMLINK-y-include += rte_flow.h
-SYMLINK-y-include += rte_flow_driver.h
-SYMLINK-y-include += rte_tm.h
-SYMLINK-y-include += rte_tm_driver.h
+MODULE_CFLAGS += -I$(SRCDIR)
+MODULE_CFLAGS += -I$(RTE_OUTPUT)/include
+MODULE_CFLAGS += -Winline -Wall -Werror
+MODULE_CFLAGS += -include $(RTE_OUTPUT)/include/rte_config.h
 
-include $(RTE_SDK)/mk/rte.lib.mk
+#
+# all source are stored in SRCS-y
+#
+SRCS-y := contigmem.c
+
+include $(RTE_SDK)/mk/rte.bsdmodule.mk

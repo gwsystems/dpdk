@@ -38,7 +38,8 @@
 #   - define TOOLCHAIN_ASFLAGS variable (overridden by cmdline value)
 #
 
-CC        = $(CROSS)gcc
+# CC        = $(CROSS)gcc
+CC        = /home/riley/clones/composite/src/components/lib/musl-1.1.11/bin/musl-gcc
 KERNELCC  = $(CROSS)gcc
 CPP       = $(CROSS)cpp
 # for now, we don't use as but nasm.
@@ -72,10 +73,14 @@ endif
 endif
 
 WERROR_FLAGS := -W -Wall -Wstrict-prototypes -Wmissing-prototypes
+# WERROR_FLAGS := -W -Wall
 WERROR_FLAGS += -Wmissing-declarations -Wold-style-definition -Wpointer-arith
+# WERROR_FLAGS += -Wold-style-definition -Wpointer-arith
 WERROR_FLAGS += -Wcast-align -Wnested-externs -Wcast-qual
+# WERROR_FLAGS += -Wcast-align -Wnested-externs
 WERROR_FLAGS += -Wformat-nonliteral -Wformat-security
 WERROR_FLAGS += -Wundef -Wwrite-strings
+# WERROR_FLAGS += -Wwrite-strings
 
 ifeq ($(RTE_DEVEL_BUILD),y)
 WERROR_FLAGS += -Werror
