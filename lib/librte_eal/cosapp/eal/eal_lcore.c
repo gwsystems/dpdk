@@ -35,6 +35,7 @@
 #include <sys/sysctl.h>
 
 #include <rte_log.h>
+
 #include <rte_eal.h>
 #include <rte_lcore.h>
 #include <rte_common.h>
@@ -53,15 +54,8 @@ eal_cpu_core_id(__rte_unused unsigned lcore_id)
 static int
 eal_get_ncpus(void)
 {
-	static int ncpu = -1;
-	int mib[2] = {CTL_HW, HW_NCPU};
-	size_t len = sizeof(ncpu);
-
-	if (ncpu < 0) {
-		sysctl(mib, 2, &ncpu, &len, NULL, 0);
-		RTE_LOG(INFO, EAL, "Sysctl reports %d cpus\n", ncpu);
-	}
-	return ncpu;
+        /* running single core */
+	return 1;
 }
 
 unsigned
