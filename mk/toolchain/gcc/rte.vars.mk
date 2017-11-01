@@ -39,7 +39,7 @@
 #
 
 # CC        = $(CROSS)gcc
-CC        = /home/riley/clones/composite/src/components/lib/musl-1.1.11/bin/musl-gcc
+CC        = $(COS_HOME)/src/components/lib/musl-1.1.11/bin/musl-gcc
 KERNELCC  = $(CROSS)gcc
 CPP       = $(CROSS)cpp
 # for now, we don't use as but nasm.
