@@ -33,6 +33,7 @@
  */
 
 #define _FILE_OFFSET_BITS 64
+#include <sched.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -52,6 +53,8 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <setjmp.h>
+#include <fcntl.h>
+
 #ifdef RTE_EAL_NUMA_AWARE_HUGEPAGES
 #include <numa.h>
 #include <numaif.h>
