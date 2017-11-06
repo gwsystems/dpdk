@@ -34,7 +34,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <pthread.h>
+/* #include <pthread.h> */
 #include <sys/queue.h>
 #include <stdarg.h>
 #include <unistd.h>
@@ -126,7 +126,7 @@ static union intr_pipefds intr_pipe;
 static struct rte_intr_source_list intr_sources;
 
 /* interrupt handling thread */
-static pthread_t intr_thread;
+static cos_eal_thd_t intr_thread;
 
 /* VFIO interrupts */
 #ifdef VFIO_PRESENT
@@ -891,7 +891,7 @@ rte_eal_intr_init(void)
 	}
 
 	/* create the host thread to wait/handle the interrupt */
-	ret = pthread_create(&intr_thread, NULL,
+	ret = cos_eal_thd_create(&intr_thread,
 			eal_intr_thread_main, NULL);
 	if (ret != 0) {
 		rte_errno = ret;

@@ -38,7 +38,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <syslog.h>
 #include <getopt.h>
 #include <sys/file.h>
@@ -85,6 +84,8 @@
 #include "eal_hugepages.h"
 #include "eal_options.h"
 #include "eal_vfio.h"
+
+#include "cos_eal_thd.h"
 
 #define MEMSIZE_IF_NO_HUGE_PAGE (64ULL * 1024ULL * 1024ULL)
 
@@ -749,7 +750,7 @@ int
 rte_eal_init(int argc, char **argv)
 {
 	int i, fctret, ret;
-	pthread_t thread_id;
+	cos_eal_thd_t thread_id;
 	static rte_atomic32_t run_once = RTE_ATOMIC32_INIT(0);
 	const char *logid;
 	char cpuset[RTE_CPU_AFFINITY_STR_LEN];
@@ -771,7 +772,7 @@ rte_eal_init(int argc, char **argv)
 	logid = strrchr(argv[0], '/');
 	logid = strdup(logid ? logid + 1: argv[0]);
 
-	thread_id = pthread_self();
+	thread_id = cos_eal_thd_curr();
 
 	eal_reset_internal_config(&internal_config);
 
@@ -914,8 +915,7 @@ rte_eal_init(int argc, char **argv)
 		lcore_config[i].state = WAIT;
 
 		/* create a thread for each lcore */
-		ret = pthread_create(&lcore_config[i].thread_id, NULL,
-				     eal_thread_loop, NULL);
+		ret = cos_eal_thd_create(&lcore_config[i].thread_id, eal_thread_loop, NULL);
 		if (ret != 0)
 			rte_panic("Cannot create thread\n");
 

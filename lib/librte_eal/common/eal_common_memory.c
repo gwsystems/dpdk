@@ -153,11 +153,14 @@ rte_eal_memory_init(void)
 {
 	RTE_LOG(DEBUG, EAL, "Setting up physically contiguous memory...\n");
 
+#define NO_HUGEPAGES
+#ifndef NO_HUGEPAGES
 	const int retval = rte_eal_process_type() == RTE_PROC_PRIMARY ?
 			rte_eal_hugepage_init() :
 			rte_eal_hugepage_attach();
 	if (retval < 0)
 		return -1;
+#endif
 
 	if (internal_config.no_shconf == 0 && rte_eal_memdevice_init() < 0)
 		return -1;

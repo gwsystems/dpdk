@@ -56,6 +56,8 @@
 #include "eal_options.h"
 #include "eal_filesystem.h"
 
+/* #include "cos_eal_thd.h" */
+
 #define BITS_PER_HEX 4
 
 const char
@@ -116,7 +118,7 @@ static struct shared_driver_list solib_list =
 TAILQ_HEAD_INITIALIZER(solib_list);
 
 /* Default path of external loadable drivers */
-static const char *default_solib_dir = RTE_EAL_PMD_PATH;
+/* static const char *default_solib_dir = RTE_EAL_PMD_PATH; */
 
 /*
  * Stringified version of solib path used by dpdk-pmdinfo.py
@@ -240,70 +242,45 @@ eal_plugin_add(const char *path)
 	return 0;
 }
 
-static int
-eal_plugindir_init(const char *path)
-{
-	DIR *d = NULL;
-	struct dirent *dent = NULL;
-	char sopath[PATH_MAX];
+/* static int */
+/* eal_plugindir_init(const char *path) */
+/* { */
+/* 	DIR *d = NULL; */
+/* 	struct dirent *dent = NULL; */
+/* 	char sopath[PATH_MAX]; */
 
-	if (path == NULL || *path == '\0')
-		return 0;
+/* 	if (path == NULL || *path == '\0') */
+/* 		return 0; */
 
-	d = opendir(path);
-	if (d == NULL) {
-		RTE_LOG(ERR, EAL, "failed to open directory %s: %s\n",
-			path, strerror(errno));
-		return -1;
-	}
+/* 	d = opendir(path); */
+/* 	if (d == NULL) { */
+/* 		RTE_LOG(ERR, EAL, "failed to open directory %s: %s\n", */
+/* 			path, strerror(errno)); */
+/* 		return -1; */
+/* 	} */
 
-	while ((dent = readdir(d)) != NULL) {
-		struct stat sb;
+/* 	while ((dent = readdir(d)) != NULL) { */
+/* 		struct stat sb; */
 
-		snprintf(sopath, PATH_MAX-1, "%s/%s", path, dent->d_name);
-		sopath[PATH_MAX-1] = 0;
+/* 		snprintf(sopath, PATH_MAX-1, "%s/%s", path, dent->d_name); */
+/* 		sopath[PATH_MAX-1] = 0; */
 
-		if (!(stat(sopath, &sb) == 0 && S_ISREG(sb.st_mode)))
-			continue;
+/* 		if (!(stat(sopath, &sb) == 0 && S_ISREG(sb.st_mode))) */
+/* 			continue; */
 
-		if (eal_plugin_add(sopath) == -1)
-			break;
-	}
+/* 		if (eal_plugin_add(sopath) == -1) */
+/* 			break; */
+/* 	} */
 
-	closedir(d);
-	/* XXX this ignores failures from readdir() itself */
-	return (dent == NULL) ? 0 : -1;
-}
+/* 	closedir(d); */
+/* 	/1* XXX this ignores failures from readdir() itself *1/ */
+/* 	return (dent == NULL) ? 0 : -1; */
+/* } */
 
 int
 eal_plugins_init(void)
 {
-	struct shared_driver *solib = NULL;
-
-	if (*default_solib_dir != '\0')
-		eal_plugin_add(default_solib_dir);
-
-	TAILQ_FOREACH(solib, &solib_list, next) {
-		struct stat sb;
-
-		if (stat(solib->name, &sb) == 0 && S_ISDIR(sb.st_mode)) {
-			if (eal_plugindir_init(solib->name) == -1) {
-				RTE_LOG(ERR, EAL,
-					"Cannot init plugin directory %s\n",
-					solib->name);
-				return -1;
-			}
-		} else {
-			RTE_LOG(DEBUG, EAL, "open shared lib %s\n",
-				solib->name);
-			solib->lib_handle = dlopen(solib->name, RTLD_NOW);
-			if (solib->lib_handle == NULL) {
-				RTE_LOG(ERR, EAL, "%s\n", dlerror());
-				return -1;
-			}
-		}
-
-	}
+    //plugins not implemented
 	return 0;
 }
 
@@ -1178,11 +1155,11 @@ eal_auto_detect_cores(struct rte_config *cfg)
 	unsigned int lcore_id;
 	unsigned int removed = 0;
 	rte_cpuset_t affinity_set;
-	pthread_t tid = pthread_self();
+	/* cos_eal_thd_t tid = cos_eal_thd_self(); */
 
-	if (pthread_getaffinity_np(tid, sizeof(rte_cpuset_t),
-				&affinity_set) < 0)
-		CPU_ZERO(&affinity_set);
+	/* if (pthread_getaffinity_np(tid, sizeof(rte_cpuset_t), */
+	/* 			&affinity_set) < 0) */
+	/* 	CPU_ZERO(&affinity_set); */
 
 	for (lcore_id = 0; lcore_id < RTE_MAX_LCORE; lcore_id++) {
 		if (cfg->lcore_role[lcore_id] == ROLE_RTE &&
