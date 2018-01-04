@@ -52,14 +52,13 @@ rte_strerror(int errnum)
 	/* since some implementations of strerror_r throw an error
 	 * themselves if errnum is too big, we handle that case here */
 	if (errnum > RTE_MAX_ERRNO)
-		/* RTE_PER_LCORE(retval); */
 		snprintf(RTE_PER_LCORE(retval), RETVAL_SZ,
 #ifdef RTE_EXEC_ENV_BSDAPP
 				"Unknown error: %d", errnum);
 #else
 				"Unknown error %d", errnum);
 #endif
-	/* else */
+	else
 		switch (errnum){
 		case E_RTE_SECONDARY:
 			return "Invalid call in secondary process";
@@ -70,5 +69,4 @@ rte_strerror(int errnum)
 		}
 
 	return RTE_PER_LCORE(retval);
-	return NULL;
 }
