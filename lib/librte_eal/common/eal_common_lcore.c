@@ -50,6 +50,10 @@
  * processors on the machine. The function will fill the cpu_info
  * structure.
  */
+
+#undef RTE_MAX_LCORE
+#define RTE_MAX_LCORE 1
+
 int
 rte_eal_cpu_init(void)
 {

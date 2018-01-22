@@ -173,10 +173,10 @@ rte_eal_config_create(void)
 	void *rte_mem_cfg_addr;
 	int retval;
 
-	const char *pathname = eal_runtime_config_path();
-
 	if (internal_config.no_shconf)
 		return;
+
+	const char *pathname = eal_runtime_config_path();
 
 	/* map the config before hugepage address so that we don't waste a page */
 	if (internal_config.base_virtaddr != 0)
@@ -226,10 +226,10 @@ rte_eal_config_attach(void)
 {
 	struct rte_mem_config *mem_config;
 
-	const char *pathname = eal_runtime_config_path();
-
 	if (internal_config.no_shconf)
 		return;
+
+	const char *pathname = eal_runtime_config_path();
 
 	if (mem_cfg_fd < 0){
 		mem_cfg_fd = open(pathname, O_RDWR);
@@ -307,6 +307,10 @@ static void
 rte_config_init(void)
 {
 	rte_config.process_type = internal_config.process_type;
+
+	/* Shared global config not supported */
+	/* Could be point of problem once multicore is setup */
+	internal_config.no_shconf = 1;
 
 	switch (rte_config.process_type){
 	case RTE_PROC_PRIMARY:
@@ -683,11 +687,13 @@ eal_check_mem_on_local_socket(void)
 			"memory on local socket!\n");
 }
 
-static int
-sync_func(__attribute__((unused)) void *arg)
-{
-	return 0;
-}
+/* Used as dummy function for multiprocess slave cores */
+
+/* static int */
+/* sync_func(__attribute__((unused)) void *arg) */
+/* { */
+/* 	return 0; */
+/* } */
 
 inline static void
 rte_eal_mcfg_complete(void)
@@ -775,6 +781,9 @@ rte_eal_init(int argc, char **argv)
 	thread_id = cos_eal_thd_curr();
 
 	eal_reset_internal_config(&internal_config);
+
+	/* Hugepages not implemented */
+	internal_config.no_hugetlbfs = 1;
 
 	/* set log level as early as possible */
 	eal_log_level_parse(argc, argv);
@@ -901,64 +910,69 @@ rte_eal_init(int argc, char **argv)
 		return -1;
 	}
 
-	RTE_LCORE_FOREACH_SLAVE(i) {
+	/* Multicore support not implemented */
 
-		/*
-		 * create communication pipes between master thread
-		 * and children
-		 */
-		if (pipe(lcore_config[i].pipe_master2slave) < 0)
-			rte_panic("Cannot create pipe\n");
-		if (pipe(lcore_config[i].pipe_slave2master) < 0)
-			rte_panic("Cannot create pipe\n");
+	RTE_SET_USED(i);
+	RTE_SET_USED(thread_name);
 
-		lcore_config[i].state = WAIT;
+	/* RTE_LCORE_FOREACH_SLAVE(i) { */
 
-		/* create a thread for each lcore */
-		ret = cos_eal_thd_create(&lcore_config[i].thread_id, eal_thread_loop, NULL);
-		if (ret != 0)
-			rte_panic("Cannot create thread\n");
+	/* */
+	/* 	 * create communication pipes between master thread */
+	/* 	 * and children */
+	/* 	 *1/ */
+	/* 	if (pipe(lcore_config[i].pipe_master2slave) < 0) */
+	/* 		rte_panic("Cannot create pipe\n"); */
+	/* 	if (pipe(lcore_config[i].pipe_slave2master) < 0) */
+	/* 		rte_panic("Cannot create pipe\n"); */
 
-		/* Set thread_name for aid in debugging. */
-		snprintf(thread_name, RTE_MAX_THREAD_NAME_LEN,
-			"lcore-slave-%d", i);
-		ret = rte_thread_setname(lcore_config[i].thread_id,
-						thread_name);
-		if (ret != 0)
-			RTE_LOG(DEBUG, EAL,
-				"Cannot set name for lcore thread\n");
-	}
+	/* 	lcore_config[i].state = WAIT; */
+
+	/* 	/1* create a thread for each lcore *1/ */
+	/* 	ret = cos_eal_thd_create(&lcore_config[i].thread_id, eal_thread_loop, NULL); */
+	/* 	if (ret != 0) */
+	/* 		rte_panic("Cannot create thread\n"); */
+
+	/* 	/1* Set thread_name for aid in debugging. *1/ */
+	/* 	snprintf(thread_name, RTE_MAX_THREAD_NAME_LEN, */
+	/* 		"lcore-slave-%d", i); */
+	/* 	ret = rte_thread_setname(lcore_config[i].thread_id, */
+	/* 					thread_name); */
+	/* 	if (ret != 0) */
+	/* 		RTE_LOG(DEBUG, EAL, */
+	/* 			"Cannot set name for lcore thread\n"); */
+	/* } */
 
 	/*
 	 * Launch a dummy function on all slave lcores, so that master lcore
 	 * knows they are all ready when this function returns.
 	 */
-	rte_eal_mp_remote_launch(sync_func, NULL, SKIP_MASTER);
-	rte_eal_mp_wait_lcore();
+	/* rte_eal_mp_remote_launch(sync_func, NULL, SKIP_MASTER); */
+	/* rte_eal_mp_wait_lcore(); */
 
 	/* initialize services so vdevs register service during bus_probe. */
-	ret = rte_service_init();
-	if (ret) {
-		rte_eal_init_alert("rte_service_init() failed\n");
-		rte_errno = ENOEXEC;
-		return -1;
-	}
+	/* ret = rte_service_init(); */
+	/* if (ret) { */
+	/* 	rte_eal_init_alert("rte_service_init() failed\n"); */
+	/* 	rte_errno = ENOEXEC; */
+	/* 	return -1; */
+	/* } */
 
 	/* Probe all the buses and devices/drivers on them */
-	if (rte_bus_probe()) {
-		rte_eal_init_alert("Cannot probe devices\n");
-		rte_errno = ENOTSUP;
-		return -1;
-	}
+	/* if (rte_bus_probe()) { */
+	/* 	rte_eal_init_alert("Cannot probe devices\n"); */
+	/* 	rte_errno = ENOTSUP; */
+	/* 	return -1; */
+	/* } */
 
 	/* initialize default service/lcore mappings and start running. Ignore
 	 * -ENOTSUP, as it indicates no service coremask passed to EAL.
 	 */
-	ret = rte_service_start_with_defaults();
-	if (ret < 0 && ret != -ENOTSUP) {
-		rte_errno = ENOEXEC;
-		return -1;
-	}
+	/* ret = rte_service_start_with_defaults(); */
+	/* if (ret < 0 && ret != -ENOTSUP) { */
+	/* 	rte_errno = ENOEXEC; */
+	/* 	return -1; */
+	/* } */
 
 	rte_eal_mcfg_complete();
 

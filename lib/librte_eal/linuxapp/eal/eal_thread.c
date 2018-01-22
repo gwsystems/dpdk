@@ -110,12 +110,15 @@ eal_thread_set_affinity(void)
 
 void eal_thread_init_master(unsigned lcore_id)
 {
-	/* set the lcore ID in per-lcore memory area */
-	RTE_PER_LCORE(_lcore_id) = lcore_id;
+	/* /1* set the lcore ID in per-lcore memory area *1/ */
+	/* RTE_PER_LCORE(_lcore_id) = lcore_id; */
 
-	/* set CPU affinity */
-	if (eal_thread_set_affinity() < 0)
-		rte_panic("cannot set affinity\n");
+	/* /1* set CPU affinity *1/ */
+	/* if (eal_thread_set_affinity() < 0) */
+	/* 	rte_panic("cannot set affinity\n"); */
+
+	/* cpu affinity not implemented */
+	RTE_SET_USED(lcore_id);
 }
 
 /* main loop of threads */
