@@ -39,7 +39,8 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/sysmacros.h>
-#include <linux/pci_regs.h>
+/* RSK */
+/* #include <linux/pci_regs.h> */
 
 #if defined(RTE_ARCH_X86)
 #include <sys/io.h>
@@ -58,27 +59,41 @@ void *pci_map_addr = NULL;
 
 #define OFF_MAX              ((uint64_t)(off_t)-1)
 
+
+/* RSK */
 int
 pci_uio_read_config(const struct rte_intr_handle *intr_handle,
 		    void *buf, size_t len, off_t offset)
 {
-	return pread(intr_handle->uio_cfg_fd, buf, len, offset);
+	RTE_SET_USED(intr_handle);
+	RTE_SET_USED(buf);
+	RTE_SET_USED(len);
+	RTE_SET_USED(offset);
+	return 0;
+/* return pread(intr_handle->uio_cfg_fd, buf, len, offset); */
 }
 
 int
 pci_uio_write_config(const struct rte_intr_handle *intr_handle,
 		     const void *buf, size_t len, off_t offset)
 {
-	return pwrite(intr_handle->uio_cfg_fd, buf, len, offset);
+	RTE_SET_USED(intr_handle);
+	RTE_SET_USED(buf);
+	RTE_SET_USED(len);
+	RTE_SET_USED(offset);
+	return 0;
+	/* return pwrite(intr_handle->uio_cfg_fd, buf, len, offset); */
 }
 
+/* RSK */
 static int
 pci_uio_set_bus_master(int dev_fd)
 {
 	uint16_t reg;
-	int ret;
+	int ret = 0;
 
-	ret = pread(dev_fd, &reg, sizeof(reg), PCI_COMMAND);
+	RTE_SET_USED(dev_fd);
+	/* ret = pread(dev_fd, &reg, sizeof(reg), PCI_COMMAND); */
 	if (ret != sizeof(reg)) {
 		RTE_LOG(ERR, EAL,
 			"Cannot read command from PCI config space!\n");
@@ -86,12 +101,12 @@ pci_uio_set_bus_master(int dev_fd)
 	}
 
 	/* return if bus mastering is already on */
-	if (reg & PCI_COMMAND_MASTER)
-		return 0;
+	/* if (reg & PCI_COMMAND_MASTER) */
+		/* return 0; */
 
-	reg |= PCI_COMMAND_MASTER;
+	/* reg |= PCI_COMMAND_MASTER; */
 
-	ret = pwrite(dev_fd, &reg, sizeof(reg), PCI_COMMAND);
+	/* ret = pwrite(dev_fd, &reg, sizeof(reg), PCI_COMMAND); */
 	if (ret != sizeof(reg)) {
 		RTE_LOG(ERR, EAL,
 			"Cannot write command to PCI config space!\n");
@@ -532,21 +547,21 @@ pci_uio_ioport_write(struct rte_pci_ioport *p,
 		if (len >= 4) {
 			size = 4;
 #if defined(RTE_ARCH_X86)
-			outl_p(*(const uint32_t *)s, reg);
+			/* outl_p(*(const uint32_t *)s, reg); */
 #else
 			*(volatile uint32_t *)reg = *(const uint32_t *)s;
 #endif
 		} else if (len >= 2) {
 			size = 2;
 #if defined(RTE_ARCH_X86)
-			outw_p(*(const uint16_t *)s, reg);
+			/* outw_p(*(const uint16_t *)s, reg); */
 #else
 			*(volatile uint16_t *)reg = *(const uint16_t *)s;
 #endif
 		} else {
 			size = 1;
 #if defined(RTE_ARCH_X86)
-			outb_p(*s, reg);
+			/* outb_p(*s, reg); */
 #else
 			*(volatile uint8_t *)reg = *s;
 #endif
