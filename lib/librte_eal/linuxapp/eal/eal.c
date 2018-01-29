@@ -86,6 +86,7 @@
 #include "eal_vfio.h"
 
 #include "cos_eal_thd.h"
+#include "cos_eal_pci.h"
 
 #define MEMSIZE_IF_NO_HUGE_PAGE (64ULL * 1024ULL * 1024ULL)
 
@@ -904,16 +905,24 @@ rte_eal_init(int argc, char **argv)
 		return -1;
 	}
 
+	/* RSK */
+	cos_pci_scan();
+
 	if (rte_bus_scan()) {
 		rte_eal_init_alert("Cannot scan the buses for devices\n");
 		rte_errno = ENODEV;
 		return -1;
 	}
 
+	/* Force the linker to link eal_common_pci.c */
+	dummy_func();
+
 	/* Multicore support not implemented */
 
 	RTE_SET_USED(i);
 	RTE_SET_USED(thread_name);
+
+	/*  RSK multicore */
 
 	/* RTE_LCORE_FOREACH_SLAVE(i) { */
 
@@ -958,12 +967,13 @@ rte_eal_init(int argc, char **argv)
 	/* 	return -1; */
 	/* } */
 
+	// RSK
 	/* Probe all the buses and devices/drivers on them */
-	/* if (rte_bus_probe()) { */
-	/* 	rte_eal_init_alert("Cannot probe devices\n"); */
-	/* 	rte_errno = ENOTSUP; */
-	/* 	return -1; */
-	/* } */
+	if (rte_bus_probe()) {
+		rte_eal_init_alert("Cannot probe devices\n");
+		rte_errno = ENOTSUP;
+		return -1;
+	}
 
 	/* initialize default service/lcore mappings and start running. Ignore
 	 * -ENOTSUP, as it indicates no service coremask passed to EAL.
