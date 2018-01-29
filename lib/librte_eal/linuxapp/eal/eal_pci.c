@@ -46,6 +46,11 @@
 #include "eal_private.h"
 #include "eal_pci_init.h"
 
+#include "cos_eal_pci.h"
+
+extern struct cos_pci_device devices[PCI_DEVICE_NUM];
+extern int dev_num;
+
 /**
  * @file
  * PCI probing under linux
@@ -86,35 +91,13 @@ pci_get_kernel_driver_by_path(const char *filename, char *dri_name)
 	return -1;
 }
 
+/* RSK */
 /* Map pci device */
 int
 rte_pci_map_device(struct rte_pci_device *dev)
 {
-	int ret = -1;
-
-	/* try mapping the NIC resources using VFIO if it exists */
-	switch (dev->kdrv) {
-	case RTE_KDRV_VFIO:
-#ifdef VFIO_PRESENT
-		if (pci_vfio_is_enabled())
-			ret = pci_vfio_map_resource(dev);
-#endif
-		break;
-	case RTE_KDRV_IGB_UIO:
-	case RTE_KDRV_UIO_GENERIC:
-		if (rte_eal_using_phys_addrs()) {
-			/* map resources for devices that use uio */
-			ret = pci_uio_map_resource(dev);
-		}
-		break;
-	default:
-		RTE_LOG(DEBUG, EAL,
-			"  Not managed by a supported kernel driver, skipped\n");
-		ret = 1;
-		break;
-	}
-
-	return ret;
+	/* RSK should move logic out of uio */
+	return pci_uio_map_resource(dev);
 }
 
 /* Unmap pci device */
@@ -393,99 +376,101 @@ pci_update_device(const struct rte_pci_addr *addr)
 	snprintf(filename, sizeof(filename), "%s/" PCI_PRI_FMT,
 		 pci_get_sysfs_path(), addr->domain, addr->bus, addr->devid,
 		 addr->function);
-
+	/* RSK */
+	/* snprintf(filename, sizeof(filename), "%d:%d:%d", addr->bus, addr->devid, addr->function); */
 	return pci_scan_one(filename, addr);
 }
 
-/*
- * split up a pci address into its constituent parts.
- */
-static int
-parse_pci_addr_format(const char *buf, int bufsize, struct rte_pci_addr *addr)
-{
-	/* first split on ':' */
-	union splitaddr {
-		struct {
-			char *domain;
-			char *bus;
-			char *devid;
-			char *function;
-		};
-		char *str[PCI_FMT_NVAL]; /* last element-separator is "." not ":" */
-	} splitaddr;
+/* RSK  */
+/*  * split up a pci address into its constituent parts. */
+/*  *1/ */
+/* static int */
+/* parse_pci_addr_format(const char *buf, int bufsize, struct rte_pci_addr *addr) */
+/* { */
+/* 	/1* first split on ':' *1/ */
+/* 	union splitaddr { */
+/* 		struct { */
+/* 			char *domain; */
+/* 			char *bus; */
+/* 			char *devid; */
+/* 			char *function; */
+/* 		}; */
+/* 		char *str[PCI_FMT_NVAL]; /1* last element-separator is "." not ":" *1/ */
+/* 	} splitaddr; */
 
-	char *buf_copy = strndup(buf, bufsize);
-	if (buf_copy == NULL)
-		return -1;
+/* 	char *buf_copy = strndup(buf, bufsize); */
+/* 	if (buf_copy == NULL) */
+/* 		return -1; */
 
-	if (rte_strsplit(buf_copy, bufsize, splitaddr.str, PCI_FMT_NVAL, ':')
-			!= PCI_FMT_NVAL - 1)
-		goto error;
-	/* final split is on '.' between devid and function */
-	splitaddr.function = strchr(splitaddr.devid,'.');
-	if (splitaddr.function == NULL)
-		goto error;
-	*splitaddr.function++ = '\0';
+/* 	if (rte_strsplit(buf_copy, bufsize, splitaddr.str, PCI_FMT_NVAL, ':') */
+/* 			!= PCI_FMT_NVAL - 1) */
+/* 		goto error; */
+/* 	/1* final split is on '.' between devid and function *1/ */
+/* 	splitaddr.function = strchr(splitaddr.devid,'.'); */
+/* 	if (splitaddr.function == NULL) */
+/* 		goto error; */
+/* 	*splitaddr.function++ = '\0'; */
 
-	/* now convert to int values */
-	errno = 0;
-	addr->domain = strtoul(splitaddr.domain, NULL, 16);
-	addr->bus = strtoul(splitaddr.bus, NULL, 16);
-	addr->devid = strtoul(splitaddr.devid, NULL, 16);
-	addr->function = strtoul(splitaddr.function, NULL, 10);
-	if (errno != 0)
-		goto error;
+/* 	/1* now convert to int values *1/ */
+/* 	errno = 0; */
+/* 	addr->domain = strtoul(splitaddr.domain, NULL, 16); */
+/* 	addr->bus = strtoul(splitaddr.bus, NULL, 16); */
+/* 	addr->devid = strtoul(splitaddr.devid, NULL, 16); */
+/* 	addr->function = strtoul(splitaddr.function, NULL, 10); */
+/* 	if (errno != 0) */
+/* 		goto error; */
 
-	free(buf_copy); /* free the copy made with strdup */
-	return 0;
-error:
-	free(buf_copy);
-	return -1;
-}
+/* 	free(buf_copy); /1* free the copy made with strdup *1/ */
+/* 	return 0; */
+/* error: */
+/* 	free(buf_copy); */
+/* 	return -1; */
+/* } */
 
+/* RSK */
 /*
  * Scan the content of the PCI bus, and the devices in the devices
  * list
  */
-int
-rte_pci_scan(void)
-{
-	struct dirent *e;
-	DIR *dir;
-	char dirname[PATH_MAX];
-	struct rte_pci_addr addr;
+/* int */
+/* rte_pci_scan(void) */
+/* { */
+/* 	struct dirent *e; */
+/* 	DIR *dir; */
+/* 	char dirname[PATH_MAX]; */
+/* 	struct rte_pci_addr addr; */
 
-	/* for debug purposes, PCI can be disabled */
-	if (internal_config.no_pci)
-		return 0;
+/* 	/1* for debug purposes, PCI can be disabled *1/ */
+/* 	if (internal_config.no_pci) */
+/* 		return 0; */
 
-	dir = opendir(pci_get_sysfs_path());
-	if (dir == NULL) {
-		RTE_LOG(ERR, EAL, "%s(): opendir failed: %s\n",
-			__func__, strerror(errno));
-		return -1;
-	}
+/* 	dir = opendir(pci_get_sysfs_path()); */
+/* 	if (dir == NULL) { */
+/* 		RTE_LOG(ERR, EAL, "%s(): opendir failed: %s\n", */
+/* 			__func__, strerror(errno)); */
+/* 		return -1; */
+/* 	} */
 
-	while ((e = readdir(dir)) != NULL) {
-		if (e->d_name[0] == '.')
-			continue;
+/* 	while ((e = readdir(dir)) != NULL) { */
+/* 		if (e->d_name[0] == '.') */
+/* 			continue; */
 
-		if (parse_pci_addr_format(e->d_name, sizeof(e->d_name), &addr) != 0)
-			continue;
+/* 		if (parse_pci_addr_format(e->d_name, sizeof(e->d_name), &addr) != 0) */
+/* 			continue; */
 
-		snprintf(dirname, sizeof(dirname), "%s/%s",
-				pci_get_sysfs_path(), e->d_name);
+/* 		snprintf(dirname, sizeof(dirname), "%s/%s", */
+/* 				pci_get_sysfs_path(), e->d_name); */
 
-		if (pci_scan_one(dirname, &addr) < 0)
-			goto error;
-	}
-	closedir(dir);
-	return 0;
+/* 		if (pci_scan_one(dirname, &addr) < 0) */
+/* 			goto error; */
+/* 	} */
+/* 	closedir(dir); */
+/* 	return 0; */
 
-error:
-	closedir(dir);
-	return -1;
-}
+/* error: */
+/* 	closedir(dir); */
+/* 	return -1; */
+/* } */
 
 /* Read PCI config space. */
 int rte_pci_read_config(const struct rte_pci_device *device,
@@ -719,4 +704,74 @@ rte_pci_ioport_unmap(struct rte_pci_ioport *p)
 	}
 
 	return ret;
+}
+
+/* RSK
+ * create pci_device_list from initial walk */
+int
+rte_pci_scan(void) {
+	int i, j;
+	struct rte_pci_device *pci_device_list, *rte_dev;
+	struct cos_pci_device *cos_dev;
+
+	/* Be careful about memory here! */
+	/* Free this list when pci_bus is closed? */
+	pci_device_list = malloc(sizeof(struct rte_pci_device) * dev_num);
+	if (!pci_device_list) return -1;
+	memset(pci_device_list, 0, sizeof(struct rte_pci_device) * dev_num);
+	RTE_LOG(ERR, EAL, "scan called\n");
+
+	for (i = 0; i < dev_num; i++) {
+		rte_dev = &pci_device_list[i];
+		cos_dev = &devices[i];
+		/* rte_dev->device = NULL; */
+		rte_dev->addr.bus = cos_dev->bus;
+		rte_dev->addr.devid = cos_dev->dev;
+		rte_dev->addr.function = cos_dev->func;
+		rte_dev->id.class_id = cos_dev->classcode;
+		rte_dev->id.vendor_id = cos_dev->vendor;
+		rte_dev->id.device_id = cos_dev->device;
+		rte_dev->id.subsystem_vendor_id = PCI_ANY_ID;
+		rte_dev->id.subsystem_device_id = PCI_ANY_ID;
+		for (j = 0; j < PCI_MAX_RESOURCE; j++) {
+			rte_dev->mem_resource[j].phys_addr = cos_dev->bar[j].raw;
+			rte_dev->mem_resource[j].len = cos_dev->bar[j].size;
+			rte_dev->mem_resource[j].addr = NULL; /* Not sure what it should be */
+		}
+		rte_dev->max_vfs = 0;
+		rte_dev->kdrv = RTE_KDRV_NONE;
+		pci_name_set(rte_dev);
+		rte_pci_add_device(rte_dev);
+
+		/* device is valid, add in list (sorted) */
+		/* if (TAILQ_EMPTY(&rte_pci_bus.device_list)) { */
+		/* 	rte_pci_add_device(rte_dev); */
+		/* } else { */
+		/* 	struct rte_pci_device *dev2; */
+		/* 	int ret; */
+
+		/* 	TAILQ_FOREACH(dev2, &rte_pci_bus.device_list, next) { */
+		/* 		ret = rte_eal_compare_pci_addr(&rte_dev->addr, &dev2->addr); */
+		/* 		if (ret > 0) */
+		/* 			continue; */
+
+		/* 		if (ret < 0) { */
+		/* 			rte_pci_insert_device(dev2, rte_dev); */
+		/* 		} else { /1* already registered *1/ */
+		/* 			dev2->kdrv = rte_dev->kdrv; */
+		/* 			dev2->max_vfs = rte_dev->max_vfs; */
+		/* 			pci_name_set(dev2); */
+		/* 			memmove(dev2->mem_resource, rte_dev->mem_resource, */
+		/* 					sizeof(rte_dev->mem_resource)); */
+		/* 			free(rte_dev); */
+		/* 		} */
+		/* 	} */
+		/* } */
+	}
+	RTE_LOG(ERR, EAL, "Scan found %d devices\n", dev_num);
+	TAILQ_FOREACH(rte_dev, &rte_pci_bus.device_list, next) {
+		RTE_LOG(ERR, EAL, "%x:%x:%x vendor: %x device: %x\n", rte_dev->addr.bus, rte_dev->addr.devid,
+				rte_dev->addr.function, rte_dev->id.vendor_id, rte_dev->id.device_id);
+	}
+	return 0;
 }
