@@ -57,6 +57,9 @@
 
 extern struct rte_pci_bus rte_pci_bus;
 
+/* RSK */
+int force_link(void);
+
 #define SYSFS_PCI_DEVICES "/sys/bus/pci/devices"
 
 const char *pci_get_sysfs_path(void)
@@ -316,6 +319,9 @@ pci_probe_all_drivers(struct rte_pci_device *dev)
 	if (dev->driver != NULL)
 		return 0;
 
+	/*  RSK */
+	force_link();
+
 	FOREACH_DRIVER_ON_PCIBUS(dr) {
 		rc = rte_pci_probe_one_driver(dr, dev);
 		if (rc < 0)
@@ -346,8 +352,9 @@ rte_pci_probe_one(const struct rte_pci_addr *addr)
 	/* update current pci device in global list, kernel bindings might have
 	 * changed since last time we looked at it.
 	 */
-	if (pci_update_device(addr) < 0)
-		goto err_return;
+	/* RSK just going to assume details haven't changed */
+	/* if (pci_update_device(addr) < 0) */
+		/* goto err_return; */
 
 	FOREACH_DEVICE_ON_PCIBUS(dev) {
 		if (rte_eal_compare_pci_addr(&dev->addr, addr))
@@ -562,6 +569,12 @@ pci_unplug(struct rte_device *dev)
 	rte_pci_remove_device(pdev);
 	free(pdev);
 	return ret;
+}
+
+/* RSK */
+int
+dummy_func(void) {
+	return 0;
 }
 
 struct rte_pci_bus rte_pci_bus = {

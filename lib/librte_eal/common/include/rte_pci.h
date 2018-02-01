@@ -591,6 +591,9 @@ void rte_pci_ioport_read(struct rte_pci_ioport *p,
 void rte_pci_ioport_write(struct rte_pci_ioport *p,
 		const void *data, size_t len, off_t offset);
 
+/* RSK */
+int dummy_func(void);
+
 #ifdef __cplusplus
 }
 #endif
