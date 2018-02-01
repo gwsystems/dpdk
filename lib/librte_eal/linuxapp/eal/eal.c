@@ -328,24 +328,24 @@ rte_config_init(void)
 	}
 }
 
-/* Unlocks hugepage directories that were locked by eal_hugepage_info_init */
-static void
-eal_hugedirs_unlock(void)
-{
-	int i;
+/* /1* Unlocks hugepage directories that were locked by eal_hugepage_info_init *1/ */
+/* static void */
+/* eal_hugedirs_unlock(void) */
+/* { */
+/* 	int i; */
 
-	for (i = 0; i < MAX_HUGEPAGE_SIZES; i++)
-	{
-		/* skip uninitialized */
-		if (internal_config.hugepage_info[i].lock_descriptor < 0)
-			continue;
-		/* unlock hugepage file */
-		flock(internal_config.hugepage_info[i].lock_descriptor, LOCK_UN);
-		close(internal_config.hugepage_info[i].lock_descriptor);
-		/* reset the field */
-		internal_config.hugepage_info[i].lock_descriptor = -1;
-	}
-}
+/* 	for (i = 0; i < MAX_HUGEPAGE_SIZES; i++) */
+/* 	{ */
+/* 		/1* skip uninitialized *1/ */
+/* 		if (internal_config.hugepage_info[i].lock_descriptor < 0) */
+/* 			continue; */
+/* 		/1* unlock hugepage file *1/ */
+/* 		flock(internal_config.hugepage_info[i].lock_descriptor, LOCK_UN); */
+/* 		close(internal_config.hugepage_info[i].lock_descriptor); */
+/* 		/1* reset the field *1/ */
+/* 		internal_config.hugepage_info[i].lock_descriptor = -1; */
+/* 	} */
+/* } */
 
 /* display usage */
 static void
@@ -856,7 +856,7 @@ rte_eal_init(int argc, char **argv)
 	}
 
 	/* the directories are locked during eal_hugepage_info_init */
-	eal_hugedirs_unlock();
+	/* eal_hugedirs_unlock(); */
 
 	if (rte_eal_memzone_init() < 0) {
 		rte_eal_init_alert("Cannot init memzone\n");
