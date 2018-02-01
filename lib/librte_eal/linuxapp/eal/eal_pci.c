@@ -472,55 +472,34 @@ pci_update_device(const struct rte_pci_addr *addr)
 /* 	return -1; */
 /* } */
 
+/* RSK */
+/* Need to map config space into userland */
 /* Read PCI config space. */
-int rte_pci_read_config(const struct rte_pci_device *device,
-		void *buf, size_t len, off_t offset)
-{
-	const struct rte_intr_handle *intr_handle = &device->intr_handle;
+/* int rte_pci_read_config(const struct rte_pci_device *device, */
+/* 		void *buf, size_t len, off_t offset) */
+/* { */
+/* 	uint16_t read; */
+/* 	if (!buf) return -1; */
+/* 	for (read = 0; read < len - 4; i += 4) { */
+/* 		cos_pci_read_config(device->addr.bus, device->addr.devid, */
+/* 		device->addr.function, offset + read); */
+/* 	} */
+/* 	return read; */
+/* } */
 
-	switch (intr_handle->type) {
-	case RTE_INTR_HANDLE_UIO:
-	case RTE_INTR_HANDLE_UIO_INTX:
-		return pci_uio_read_config(intr_handle, buf, len, offset);
-
-#ifdef VFIO_PRESENT
-	case RTE_INTR_HANDLE_VFIO_MSIX:
-	case RTE_INTR_HANDLE_VFIO_MSI:
-	case RTE_INTR_HANDLE_VFIO_LEGACY:
-		return pci_vfio_read_config(intr_handle, buf, len, offset);
-#endif
-	default:
-		RTE_LOG(ERR, EAL,
-			"Unknown handle type of fd %d\n",
-					intr_handle->fd);
-		return -1;
-	}
-}
-
-/* Write PCI config space. */
-int rte_pci_write_config(const struct rte_pci_device *device,
-		const void *buf, size_t len, off_t offset)
-{
-	const struct rte_intr_handle *intr_handle = &device->intr_handle;
-
-	switch (intr_handle->type) {
-	case RTE_INTR_HANDLE_UIO:
-	case RTE_INTR_HANDLE_UIO_INTX:
-		return pci_uio_write_config(intr_handle, buf, len, offset);
-
-#ifdef VFIO_PRESENT
-	case RTE_INTR_HANDLE_VFIO_MSIX:
-	case RTE_INTR_HANDLE_VFIO_MSI:
-	case RTE_INTR_HANDLE_VFIO_LEGACY:
-		return pci_vfio_write_config(intr_handle, buf, len, offset);
-#endif
-	default:
-		RTE_LOG(ERR, EAL,
-			"Unknown handle type of fd %d\n",
-					intr_handle->fd);
-		return -1;
-	}
-}
+/* /1* Write PCI config space. *1/ */
+/* int rte_pci_write_config(const struct rte_pci_device *device, */
+/* 		const void *buf, size_t len, off_t offset) */
+/* { */
+/* 	//TODO FINISH THIS */
+/* 	uint16_t write; */
+/* 	if (!buf) return -1; */
+/* 	for (write = 0; write < len - 4; i += 4) { */
+/* 		cos_pci_write_config(device->addr.bus, device->addr.devid, */
+/* 		device->addr.function, offset + write); */
+/* 	} */
+/* 	return read; */
+/* } */
 
 #if defined(RTE_ARCH_X86)
 static int
