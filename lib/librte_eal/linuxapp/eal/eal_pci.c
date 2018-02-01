@@ -698,7 +698,7 @@ rte_pci_scan(void) {
 	pci_device_list = malloc(sizeof(struct rte_pci_device) * dev_num);
 	if (!pci_device_list) return -1;
 	memset(pci_device_list, 0, sizeof(struct rte_pci_device) * dev_num);
-	RTE_LOG(ERR, EAL, "scan called\n");
+	RTE_LOG(INFO, EAL, "scan called\n");
 
 	for (i = 0; i < dev_num; i++) {
 		rte_dev = &pci_device_list[i];
@@ -747,9 +747,9 @@ rte_pci_scan(void) {
 		/* 	} */
 		/* } */
 	}
-	RTE_LOG(ERR, EAL, "Scan found %d devices\n", dev_num);
+	RTE_LOG(INFO, EAL, "Scan found %d devices\n", dev_num);
 	TAILQ_FOREACH(rte_dev, &rte_pci_bus.device_list, next) {
-		RTE_LOG(ERR, EAL, "%x:%x:%x vendor: %x device: %x\n", rte_dev->addr.bus, rte_dev->addr.devid,
+		RTE_LOG(INFO, EAL, "%x:%x:%x vendor: %x device: %x\n", rte_dev->addr.bus, rte_dev->addr.devid,
 				rte_dev->addr.function, rte_dev->id.vendor_id, rte_dev->id.device_id);
 	}
 	return 0;
