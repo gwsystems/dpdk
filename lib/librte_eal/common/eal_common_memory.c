@@ -153,6 +153,7 @@ rte_eal_memory_init(void)
 {
 	RTE_LOG(DEBUG, EAL, "Setting up physically contiguous memory...\n");
 
+/*  RSK */
 #define NO_HUGEPAGES
 #ifndef NO_HUGEPAGES
 	const int retval = rte_eal_process_type() == RTE_PROC_PRIMARY ?
