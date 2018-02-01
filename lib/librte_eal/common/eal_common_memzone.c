@@ -215,22 +215,28 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 	else
 		socket = socket_id;
 
+	RTE_SET_USED(socket);
+	RTE_SET_USED(flags);
+	RTE_SET_USED(i);
+	/* RSK numa awareness not supported */
 	/* allocate memory on heap */
-	void *mz_addr = malloc_heap_alloc(&mcfg->malloc_heaps[socket], NULL,
-			requested_len, flags, align, bound);
+	/* void *mz_addr = malloc_heap_alloc(&mcfg->malloc_heaps[socket], NULL, */
+	/* 		requested_len, flags, align, bound); */
 
-	if ((mz_addr == NULL) && (socket_id == SOCKET_ID_ANY)) {
-		/* try other heaps */
-		for (i = 0; i < RTE_MAX_NUMA_NODES; i++) {
-			if (socket == i)
-				continue;
+	/* if ((mz_addr == NULL) && (socket_id == SOCKET_ID_ANY)) { */
+	/* 	/1* try other heaps *1/ */
+	/* 	for (i = 0; i < RTE_MAX_NUMA_NODES; i++) { */
+	/* 		if (socket == i) */
+	/* 			continue; */
 
-			mz_addr = malloc_heap_alloc(&mcfg->malloc_heaps[i],
-					NULL, requested_len, flags, align, bound);
-			if (mz_addr != NULL)
-				break;
-		}
-	}
+	/* 		mz_addr = malloc_heap_alloc(&mcfg->malloc_heaps[i], */
+	/* 				NULL, requested_len, flags, align, bound); */
+	/* 		if (mz_addr != NULL) */
+	/* 			break; */
+	/* 	} */
+	/* } */
+
+	void *mz_addr = malloc(len);
 
 	if (mz_addr == NULL) {
 		rte_errno = ENOMEM;
@@ -251,7 +257,9 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 
 	mcfg->memzone_cnt++;
 	snprintf(mz->name, sizeof(mz->name), "%s", name);
-	mz->phys_addr = rte_malloc_virt2phy(mz_addr);
+	/* RSK breaks rn, maybe bc we use v == p */
+	/* mz->phys_addr = rte_malloc_virt2phy(mz_addr); */
+	mz->phys_addr = (unsigned int)mz_addr;
 	mz->addr = mz_addr;
 	mz->len = (requested_len == 0 ? elem->size : requested_len);
 	mz->hugepage_sz = elem->ms->hugepage_sz;
@@ -273,12 +281,14 @@ rte_memzone_reserve_thread_safe(const char *name, size_t len,
 	/* get pointer to global configuration */
 	mcfg = rte_eal_get_configuration()->mem_config;
 
-	rte_rwlock_write_lock(&mcfg->mlock);
+	/* RSK dont need locks atm */
+	/* rte_rwlock_write_lock(&mcfg->mlock); */
+	RTE_SET_USED(mcfg);
 
 	mz = memzone_reserve_aligned_thread_unsafe(
 		name, len, socket_id, flags, align, bound);
 
-	rte_rwlock_write_unlock(&mcfg->mlock);
+	/* rte_rwlock_write_unlock(&mcfg->mlock); */
 
 	return mz;
 }
@@ -362,16 +372,17 @@ rte_memzone_free(const struct rte_memzone *mz)
 const struct rte_memzone *
 rte_memzone_lookup(const char *name)
 {
-	struct rte_mem_config *mcfg;
+	/* struct rte_mem_config *mcfg; */
 	const struct rte_memzone *memzone = NULL;
 
-	mcfg = rte_eal_get_configuration()->mem_config;
+	/* mcfg = rte_eal_get_configuration()->mem_config; */
 
-	rte_rwlock_read_lock(&mcfg->mlock);
+	/*RSK*/
+	/* rte_rwlock_read_lock(&mcfg->mlock); */
 
 	memzone = memzone_lookup_thread_unsafe(name);
 
-	rte_rwlock_read_unlock(&mcfg->mlock);
+	/* rte_rwlock_read_unlock(&mcfg->mlock); */
 
 	return memzone;
 }
@@ -425,13 +436,14 @@ rte_eal_memzone_init(void)
 		return -1;
 	}
 
-	rte_rwlock_write_lock(&mcfg->mlock);
+	/*RSK*/
+	/* rte_rwlock_write_lock(&mcfg->mlock); */
 
 	/* delete all zones */
 	mcfg->memzone_cnt = 0;
 	memset(mcfg->memzone, 0, sizeof(mcfg->memzone));
 
-	rte_rwlock_write_unlock(&mcfg->mlock);
+	/* rte_rwlock_write_unlock(&mcfg->mlock); */
 
 	return rte_eal_malloc_heap_init();
 }
@@ -445,10 +457,11 @@ void rte_memzone_walk(void (*func)(const struct rte_memzone *, void *),
 
 	mcfg = rte_eal_get_configuration()->mem_config;
 
-	rte_rwlock_read_lock(&mcfg->mlock);
+	/* RSK */
+	/* rte_rwlock_read_lock(&mcfg->mlock); */
 	for (i=0; i<RTE_MAX_MEMZONE; i++) {
 		if (mcfg->memzone[i].addr != NULL)
 			(*func)(&mcfg->memzone[i], arg);
 	}
-	rte_rwlock_read_unlock(&mcfg->mlock);
+	/* rte_rwlock_read_unlock(&mcfg->mlock); */
 }
