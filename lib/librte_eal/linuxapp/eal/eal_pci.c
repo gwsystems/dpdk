@@ -428,51 +428,6 @@ pci_update_device(const struct rte_pci_addr *addr)
 /* } */
 
 /* RSK */
-/*
- * Scan the content of the PCI bus, and the devices in the devices
- * list
- */
-/* int */
-/* rte_pci_scan(void) */
-/* { */
-/* 	struct dirent *e; */
-/* 	DIR *dir; */
-/* 	char dirname[PATH_MAX]; */
-/* 	struct rte_pci_addr addr; */
-
-/* 	/1* for debug purposes, PCI can be disabled *1/ */
-/* 	if (internal_config.no_pci) */
-/* 		return 0; */
-
-/* 	dir = opendir(pci_get_sysfs_path()); */
-/* 	if (dir == NULL) { */
-/* 		RTE_LOG(ERR, EAL, "%s(): opendir failed: %s\n", */
-/* 			__func__, strerror(errno)); */
-/* 		return -1; */
-/* 	} */
-
-/* 	while ((e = readdir(dir)) != NULL) { */
-/* 		if (e->d_name[0] == '.') */
-/* 			continue; */
-
-/* 		if (parse_pci_addr_format(e->d_name, sizeof(e->d_name), &addr) != 0) */
-/* 			continue; */
-
-/* 		snprintf(dirname, sizeof(dirname), "%s/%s", */
-/* 				pci_get_sysfs_path(), e->d_name); */
-
-/* 		if (pci_scan_one(dirname, &addr) < 0) */
-/* 			goto error; */
-/* 	} */
-/* 	closedir(dir); */
-/* 	return 0; */
-
-/* error: */
-/* 	closedir(dir); */
-/* 	return -1; */
-/* } */
-
-/* RSK */
 /* Need to map config space into userland */
 /* Read PCI config space. */
 /* int rte_pci_read_config(const struct rte_pci_device *device, */

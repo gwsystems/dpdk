@@ -391,6 +391,8 @@ pci_uio_map_resource_by_index(struct rte_pci_device *dev, int res_idx,
 	if (mapaddr == MAP_FAILED)
 		goto error;
 
+	RTE_LOG(INFO, EAL, "mapped resource at : %p\n", (void *)mapaddr);
+
 	/* pci_map_addr = RTE_PTR_ADD(mapaddr, */
 			/* (size_t)dev->mem_resource[res_idx].len); */
 

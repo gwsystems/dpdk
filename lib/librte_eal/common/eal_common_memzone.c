@@ -220,23 +220,22 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 	RTE_SET_USED(i);
 	/* RSK numa awareness not supported */
 	/* allocate memory on heap */
-	/* void *mz_addr = malloc_heap_alloc(&mcfg->malloc_heaps[socket], NULL, */
-	/* 		requested_len, flags, align, bound); */
+	void *mz_addr = malloc_heap_alloc(&mcfg->malloc_heaps[socket], NULL,
+			requested_len, flags, align, bound);
+	RTE_LOG(INFO, EAL, "MZ reserved w addr: %p\n", mz_addr);
 
-	/* if ((mz_addr == NULL) && (socket_id == SOCKET_ID_ANY)) { */
-	/* 	/1* try other heaps *1/ */
-	/* 	for (i = 0; i < RTE_MAX_NUMA_NODES; i++) { */
-	/* 		if (socket == i) */
-	/* 			continue; */
+	if ((mz_addr == NULL) && (socket_id == SOCKET_ID_ANY)) {
+		/* try other heaps */
+		for (i = 0; i < RTE_MAX_NUMA_NODES; i++) {
+			if (socket == i)
+				continue;
 
-	/* 		mz_addr = malloc_heap_alloc(&mcfg->malloc_heaps[i], */
-	/* 				NULL, requested_len, flags, align, bound); */
-	/* 		if (mz_addr != NULL) */
-	/* 			break; */
-	/* 	} */
-	/* } */
-
-	void *mz_addr = malloc(len);
+			mz_addr = malloc_heap_alloc(&mcfg->malloc_heaps[i],
+					NULL, requested_len, flags, align, bound);
+			if (mz_addr != NULL)
+				break;
+		}
+	}
 
 	if (mz_addr == NULL) {
 		rte_errno = ENOMEM;
@@ -244,6 +243,7 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 	}
 
 	const struct malloc_elem *elem = malloc_elem_from_data(mz_addr);
+	RTE_LOG(INFO, EAL, "ELEM heap: %p\n", (void*)(elem->heap));
 
 	/* fill the zone in config */
 	mz = get_next_free_memzone();
@@ -254,6 +254,7 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 		rte_errno = ENOSPC;
 		return NULL;
 	}
+
 
 	mcfg->memzone_cnt++;
 	snprintf(mz->name, sizeof(mz->name), "%s", name);
@@ -266,7 +267,6 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 	mz->socket_id = elem->ms->socket_id;
 	mz->flags = 0;
 	mz->memseg_id = elem->ms - rte_eal_get_configuration()->mem_config->memseg;
-
 	return mz;
 }
 
