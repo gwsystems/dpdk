@@ -673,7 +673,7 @@ rte_pci_scan(void) {
 			rte_dev->mem_resource[j].addr = NULL; /* Not sure what it should be */
 		}
 		rte_dev->max_vfs = 0;
-		rte_dev->kdrv = RTE_KDRV_NONE;
+		rte_dev->kdrv = RTE_KDRV_UIO_GENERIC;
 		pci_name_set(rte_dev);
 		rte_pci_add_device(rte_dev);
 
