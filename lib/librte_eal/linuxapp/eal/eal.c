@@ -906,8 +906,10 @@ rte_eal_init(int argc, char **argv)
 	}
 
 	/* RSK */
+	/* Let composite brute force scan the bus */
 	cos_pci_scan();
 
+	/* Hook pci info into dpdk */
 	if (rte_bus_scan()) {
 		rte_eal_init_alert("Cannot scan the buses for devices\n");
 		rte_errno = ENODEV;
@@ -967,7 +969,6 @@ rte_eal_init(int argc, char **argv)
 	/* 	return -1; */
 	/* } */
 
-	// RSK
 	/* Probe all the buses and devices/drivers on them */
 	if (rte_bus_probe()) {
 		rte_eal_init_alert("Cannot probe devices\n");
