@@ -34,7 +34,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <pthread.h>
+/* #include <pthread.h> */
 #include <sys/queue.h>
 #include <stdarg.h>
 #include <unistd.h>
@@ -126,7 +126,7 @@ static union intr_pipefds intr_pipe;
 static struct rte_intr_source_list intr_sources;
 
 /* interrupt handling thread */
-static pthread_t intr_thread;
+/* static cos_eal_thd_t intr_thread; */
 
 /* VFIO interrupts */
 #ifdef VFIO_PRESENT
@@ -875,39 +875,43 @@ eal_intr_thread_main(__rte_unused void *arg)
 int
 rte_eal_intr_init(void)
 {
-	int ret = 0, ret_1 = 0;
-	char thread_name[RTE_MAX_THREAD_NAME_LEN];
+	/* int ret = 0, ret_1 = 0; */
+	/* char thread_name[RTE_MAX_THREAD_NAME_LEN]; */
 
-	/* init the global interrupt source head */
-	TAILQ_INIT(&intr_sources);
+	/* /1* init the global interrupt source head *1/ */
+	/* TAILQ_INIT(&intr_sources); */
 
-	/**
-	 * create a pipe which will be waited by epoll and notified to
-	 * rebuild the wait list of epoll.
-	 */
-	if (pipe(intr_pipe.pipefd) < 0) {
-		rte_errno = errno;
-		return -1;
-	}
+	/**/
+	/*  * create a pipe which will be waited by epoll and notified to */
+	/*  * rebuild the wait list of epoll. */
+	/*  *1/ */
+	/* if (pipe(intr_pipe.pipefd) < 0) { */
+	/* 	rte_errno = errno; */
+	/* 	return -1; */
+	/* } */
 
-	/* create the host thread to wait/handle the interrupt */
-	ret = pthread_create(&intr_thread, NULL,
-			eal_intr_thread_main, NULL);
-	if (ret != 0) {
-		rte_errno = ret;
-		RTE_LOG(ERR, EAL,
-			"Failed to create thread for interrupt handling\n");
-	} else {
-		/* Set thread_name for aid in debugging. */
-		snprintf(thread_name, RTE_MAX_THREAD_NAME_LEN,
-			"eal-intr-thread");
-		ret_1 = rte_thread_setname(intr_thread, thread_name);
-		if (ret_1 != 0)
-			RTE_LOG(DEBUG, EAL,
-			"Failed to set thread name for interrupt handling\n");
-	}
+	/* /1* create the host thread to wait/handle the interrupt *1/ */
+	/* ret = cos_eal_thd_create(&intr_thread, */
+	/* 		eal_intr_thread_main, NULL); */
+	/* if (ret != 0) { */
+	/* 	rte_errno = ret; */
+	/* 	RTE_LOG(ERR, EAL, */
+	/* 		"Failed to create thread for interrupt handling\n"); */
+	/* } else { */
+	/* 	/1* Set thread_name for aid in debugging. *1/ */
+	/* 	snprintf(thread_name, RTE_MAX_THREAD_NAME_LEN, */
+	/* 		"eal-intr-thread"); */
+	/* 	ret_1 = rte_thread_setname(intr_thread, thread_name); */
+	/* 	if (ret_1 != 0) */
+	/* 		RTE_LOG(DEBUG, EAL, */
+	/* 		"Failed to set thread name for interrupt handling\n"); */
+	/* } */
 
-	return -ret;
+	/* return -ret; */
+
+
+	/*  Interrupt handling not implemented */
+	return 0;
 }
 
 static void

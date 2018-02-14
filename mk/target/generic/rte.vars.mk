@@ -115,7 +115,8 @@ ASFLAGS := $(CPU_ASFLAGS) $(EXECENV_ASFLAGS) $(TOOLCHAIN_ASFLAGS) $(MACHINE_ASFL
 ASFLAGS += $(TARGET_ASFLAGS)
 
 # add default include and lib paths
-CFLAGS += -I$(RTE_OUTPUT)/include
+CFLAGS += $(EXT_CFLAGS) -I$(RTE_OUTPUT)/include
+# CFLAGS += $(EXTRA_CFLAGS) -I$(RTE_OUTPUT)/include
 LDFLAGS += -L$(RTE_OUTPUT)/lib
 
 # always include rte_config.h: the one in $(RTE_OUTPUT)/include is

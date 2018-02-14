@@ -40,7 +40,9 @@ export RTE_SDK
 # directory list
 #
 
-ROOTDIRS-y := buildtools lib drivers app
+#removed app so that we don't need to handle its makefiles
+# ROOTDIRS-y := buildtools lib app drivers
+ROOTDIRS-y := buildtools lib drivers
 ROOTDIRS-  := test
 
 include $(RTE_SDK)/mk/rte.sdkroot.mk

@@ -295,6 +295,10 @@ void rte_memzone_dump(FILE *f);
 void rte_memzone_walk(void (*func)(const struct rte_memzone *, void *arg),
 		      void *arg);
 
+/* RSK */
+const struct rte_memzone *
+simple_memzone_create(const char *name, size_t size);
+
 #ifdef __cplusplus
 }
 #endif

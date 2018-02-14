@@ -361,8 +361,11 @@ eth_em_dev_init(struct rte_eth_dev *eth_dev)
 	}
 
 	/* Allocate memory for storing MAC addresses */
-	eth_dev->data->mac_addrs = rte_zmalloc("e1000", ETHER_ADDR_LEN *
-			hw->mac.rar_entry_count, 0);
+	/* RSK */
+	/* eth_dev->data->mac_addrs = rte_zmalloc("e1000", ETHER_ADDR_LEN * */
+			/* hw->mac.rar_entry_count, 0); */
+	eth_dev->data->mac_addrs = malloc(ETHER_ADDR_LEN *
+			hw->mac.rar_entry_count);
 	if (eth_dev->data->mac_addrs == NULL) {
 		PMD_INIT_LOG(ERR, "Failed to allocate %d bytes needed to "
 			"store MAC addresses",
@@ -1861,6 +1864,13 @@ eth_em_set_mc_addr_list(struct rte_eth_dev *dev,
 
 	hw = E1000_DEV_PRIVATE_TO_HW(dev->data->dev_private);
 	e1000_update_mc_addr_list(hw, (u8 *)mc_addr_set, nb_mc_addr);
+	return 0;
+}
+
+/* RSK */
+int force_link1(void);
+int force_link1(void)
+{
 	return 0;
 }
 

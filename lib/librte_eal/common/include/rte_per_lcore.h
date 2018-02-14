@@ -59,13 +59,13 @@ extern "C" {
  * whole macro.
  */
 #define RTE_DEFINE_PER_LCORE(type, name)			\
-	__thread __typeof__(type) per_lcore_##name
+	/*   __thread */  __typeof__(type) per_lcore_##name
 
 /**
  * Macro to declare an extern per lcore variable "var" of type "type"
  */
 #define RTE_DECLARE_PER_LCORE(type, name)			\
-	extern __thread __typeof__(type) per_lcore_##name
+	extern /*   __thread */ __typeof__(type) per_lcore_##name
 
 /**
  * Read/write the per-lcore variable value

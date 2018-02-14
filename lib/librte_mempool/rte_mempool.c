@@ -805,7 +805,12 @@ rte_mempool_create_empty(const char *name, unsigned n, unsigned elt_size,
 		goto exit_unlock;
 	}
 
-	mz = rte_memzone_reserve(mz_name, mempool_size, socket_id, mz_flags);
+	/* RSK */
+	RTE_SET_USED(mz_flags);
+	RTE_SET_USED(socket_id);
+	/* mz = rte_memzone_reserve(mz_name, mempool_size, socket_id, mz_flags); */
+	mz = simple_memzone_create(mz_name, mempool_size);
+	RTE_LOG(INFO, MEMPOOL, "MZ: %d \n", (mz != NULL));
 	if (mz == NULL)
 		goto exit_unlock;
 
@@ -854,6 +859,7 @@ rte_mempool_create_empty(const char *name, unsigned n, unsigned elt_size,
 	return mp;
 
 exit_unlock:
+	RTE_LOG(INFO, MEMPOOL, "Create unsuccessful.\n");
 	rte_rwlock_write_unlock(RTE_EAL_MEMPOOL_RWLOCK);
 	rte_free(te);
 	rte_mempool_free(mp);

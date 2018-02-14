@@ -28,22 +28,50 @@
 #   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
-include $(RTE_SDK)/mk/rte.vars.mk
+#include "common_minimal"
 
-# library name
-LIB = librte_ring.a
+CONFIG_RTE_MACHINE="native"
 
-CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3 -D_GNU_SOURCE
+CONFIG_RTE_ARCH="i686"
+CONFIG_RTE_ARCH_I686=y
+CONFIG_RTE_ARCH_X86=y
 
-EXPORT_MAP := rte_ring_version.map
+CONFIG_RTE_TOOLCHAIN="gcc"
+CONFIG_RTE_TOOLCHAIN_GCC=y
 
-LIBABIVER := 1
+#
+# KNI is not supported on 32-bit
+#
+CONFIG_RTE_LIBRTE_KNI=n
 
-# all source are stored in SRCS-y
-SRCS-$(CONFIG_RTE_LIBRTE_RING) := rte_ring.c
+#
+# Solarflare PMD is not supported on 32-bit
+#
+CONFIG_RTE_LIBRTE_SFC_EFX_PMD=n
 
-# install includes
-SYMLINK-$(CONFIG_RTE_LIBRTE_RING)-include := rte_ring.h
+#
+# AES-NI multi-buffer PMD is not supported on 32-bit
+#
+CONFIG_RTE_LIBRTE_PMD_AESNI_MB=n
 
-include $(RTE_SDK)/mk/rte.lib.mk
+#
+# AES-NI GCM PMD is not supported on 32-bit
+#
+CONFIG_RTE_LIBRTE_PMD_AESNI_GCM=n
+
+#
+# KASUMI PMD is not supported on 32-bit
+#
+CONFIG_RTE_LIBRTE_PMD_KASUMI=n
+
+#
+# ZUC PMD is not supported on 32-bit
+#
+CONFIG_RTE_LIBRTE_PMD_ZUC=n
+
+#
+# AVP PMD is not supported on 32-bit
+#
+CONFIG_RTE_LIBRTE_AVP_PMD=n

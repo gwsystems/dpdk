@@ -57,6 +57,10 @@
 
 extern struct rte_pci_bus rte_pci_bus;
 
+/* RSK */
+int force_link(void);
+int force_link1(void);
+
 #define SYSFS_PCI_DEVICES "/sys/bus/pci/devices"
 
 const char *pci_get_sysfs_path(void)
@@ -258,6 +262,7 @@ rte_pci_probe_one_driver(struct rte_pci_driver *dr,
 				(dr->drv_flags & RTE_PCI_DRV_KEEP_MAPPED_RES)))
 			rte_pci_unmap_device(dev);
 	}
+	RTE_LOG(INFO, EAL, "Dev: %s, dr: %s \n successfully probed\n", dev->name, dr->driver.name);
 
 	return ret;
 }
@@ -316,6 +321,9 @@ pci_probe_all_drivers(struct rte_pci_device *dev)
 	if (dev->driver != NULL)
 		return 0;
 
+	/*  RSK */
+	force_link1();
+
 	FOREACH_DRIVER_ON_PCIBUS(dr) {
 		rc = rte_pci_probe_one_driver(dr, dev);
 		if (rc < 0)
@@ -346,8 +354,9 @@ rte_pci_probe_one(const struct rte_pci_addr *addr)
 	/* update current pci device in global list, kernel bindings might have
 	 * changed since last time we looked at it.
 	 */
-	if (pci_update_device(addr) < 0)
-		goto err_return;
+	/* RSK just going to assume details haven't changed */
+	/* if (pci_update_device(addr) < 0) */
+		/* goto err_return; */
 
 	FOREACH_DEVICE_ON_PCIBUS(dev) {
 		if (rte_eal_compare_pci_addr(&dev->addr, addr))
@@ -362,7 +371,7 @@ rte_pci_probe_one(const struct rte_pci_addr *addr)
 
 err_return:
 	RTE_LOG(WARNING, EAL,
-		"Requested device " PCI_PRI_FMT " cannot be used\n",
+		"PROBE ONE: Requested device " PCI_PRI_FMT " cannot be used\n",
 		addr->domain, addr->bus, addr->devid, addr->function);
 	return -1;
 }
@@ -398,7 +407,7 @@ rte_pci_detach(const struct rte_pci_addr *addr)
 	return -1;
 
 err_return:
-	RTE_LOG(WARNING, EAL, "Requested device " PCI_PRI_FMT
+	RTE_LOG(WARNING, EAL, "DETACH: Requested device " PCI_PRI_FMT
 			" cannot be used\n", dev->addr.domain, dev->addr.bus,
 			dev->addr.devid, dev->addr.function);
 	return -1;
@@ -432,7 +441,7 @@ rte_pci_probe(void)
 			devargs->policy == RTE_DEV_WHITELISTED)
 			ret = pci_probe_all_drivers(dev);
 		if (ret < 0) {
-			RTE_LOG(ERR, EAL, "Requested device " PCI_PRI_FMT
+			RTE_LOG(ERR, EAL, "PROBE ALL: Requested device " PCI_PRI_FMT
 				 " cannot be used\n", dev->addr.domain, dev->addr.bus,
 				 dev->addr.devid, dev->addr.function);
 			rte_errno = errno;
@@ -562,6 +571,12 @@ pci_unplug(struct rte_device *dev)
 	rte_pci_remove_device(pdev);
 	free(pdev);
 	return ret;
+}
+
+/* RSK */
+int
+dummy_func(void) {
+	return 0;
 }
 
 struct rte_pci_bus rte_pci_bus = {

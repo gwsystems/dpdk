@@ -29,21 +29,30 @@
 #   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-include $(RTE_SDK)/mk/rte.vars.mk
+#
+# machine:
+#
+#   - can define ARCH variable (overridden by cmdline value)
+#   - can define CROSS variable (overridden by cmdline value)
+#   - define MACHINE_CFLAGS variable (overridden by cmdline value)
+#   - define MACHINE_LDFLAGS variable (overridden by cmdline value)
+#   - define MACHINE_ASFLAGS variable (overridden by cmdline value)
+#   - can define CPU_CFLAGS variable (overridden by cmdline value) that
+#     overrides the one defined in arch.
+#   - can define CPU_LDFLAGS variable (overridden by cmdline value) that
+#     overrides the one defined in arch.
+#   - can define CPU_ASFLAGS variable (overridden by cmdline value) that
+#     overrides the one defined in arch.
+#   - may override any previously defined variable
+#
 
-# library name
-LIB = librte_ring.a
+# ARCH =
+# CROSS =
+# MACHINE_CFLAGS =
+# MACHINE_LDFLAGS =
+# MACHINE_ASFLAGS =
+# CPU_CFLAGS =
+# CPU_LDFLAGS =
+# CPU_ASFLAGS =
 
-CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3 -D_GNU_SOURCE
-
-EXPORT_MAP := rte_ring_version.map
-
-LIBABIVER := 1
-
-# all source are stored in SRCS-y
-SRCS-$(CONFIG_RTE_LIBRTE_RING) := rte_ring.c
-
-# install includes
-SYMLINK-$(CONFIG_RTE_LIBRTE_RING)-include := rte_ring.h
-
-include $(RTE_SDK)/mk/rte.lib.mk
+MACHINE_CFLAGS = -march=i486

@@ -91,6 +91,8 @@ get_next_free_memzone(void)
 			return &mcfg->memzone[i];
 	}
 
+	/* RSK */
+	RTE_LOG(ERR, EAL, "No free memzones\n");
 	return NULL;
 }
 
@@ -215,9 +217,14 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 	else
 		socket = socket_id;
 
+	RTE_SET_USED(socket);
+	RTE_SET_USED(flags);
+	RTE_SET_USED(i);
+	/* RSK numa awareness not supported */
 	/* allocate memory on heap */
 	void *mz_addr = malloc_heap_alloc(&mcfg->malloc_heaps[socket], NULL,
 			requested_len, flags, align, bound);
+	RTE_LOG(INFO, EAL, "MZ reserved w addr: %p\n", mz_addr);
 
 	if ((mz_addr == NULL) && (socket_id == SOCKET_ID_ANY)) {
 		/* try other heaps */
@@ -238,6 +245,7 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 	}
 
 	const struct malloc_elem *elem = malloc_elem_from_data(mz_addr);
+	RTE_LOG(INFO, EAL, "ELEM heap: %p\n", (void*)(elem->heap));
 
 	/* fill the zone in config */
 	mz = get_next_free_memzone();
@@ -249,16 +257,18 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 		return NULL;
 	}
 
+
 	mcfg->memzone_cnt++;
 	snprintf(mz->name, sizeof(mz->name), "%s", name);
-	mz->phys_addr = rte_malloc_virt2phy(mz_addr);
+	/* RSK breaks rn, maybe bc we use v == p */
+	/* mz->phys_addr = rte_malloc_virt2phy(mz_addr); */
+	mz->phys_addr = (unsigned int)mz_addr;
 	mz->addr = mz_addr;
 	mz->len = (requested_len == 0 ? elem->size : requested_len);
 	mz->hugepage_sz = elem->ms->hugepage_sz;
 	mz->socket_id = elem->ms->socket_id;
 	mz->flags = 0;
 	mz->memseg_id = elem->ms - rte_eal_get_configuration()->mem_config->memseg;
-
 	return mz;
 }
 
@@ -273,12 +283,14 @@ rte_memzone_reserve_thread_safe(const char *name, size_t len,
 	/* get pointer to global configuration */
 	mcfg = rte_eal_get_configuration()->mem_config;
 
-	rte_rwlock_write_lock(&mcfg->mlock);
+	/* RSK dont need locks atm */
+	/* rte_rwlock_write_lock(&mcfg->mlock); */
+	RTE_SET_USED(mcfg);
 
 	mz = memzone_reserve_aligned_thread_unsafe(
 		name, len, socket_id, flags, align, bound);
 
-	rte_rwlock_write_unlock(&mcfg->mlock);
+	/* rte_rwlock_write_unlock(&mcfg->mlock); */
 
 	return mz;
 }
@@ -425,13 +437,14 @@ rte_eal_memzone_init(void)
 		return -1;
 	}
 
-	rte_rwlock_write_lock(&mcfg->mlock);
+	/*RSK*/
+	/* rte_rwlock_write_lock(&mcfg->mlock); */
 
 	/* delete all zones */
 	mcfg->memzone_cnt = 0;
 	memset(mcfg->memzone, 0, sizeof(mcfg->memzone));
 
-	rte_rwlock_write_unlock(&mcfg->mlock);
+	/* rte_rwlock_write_unlock(&mcfg->mlock); */
 
 	return rte_eal_malloc_heap_init();
 }
@@ -445,10 +458,43 @@ void rte_memzone_walk(void (*func)(const struct rte_memzone *, void *),
 
 	mcfg = rte_eal_get_configuration()->mem_config;
 
-	rte_rwlock_read_lock(&mcfg->mlock);
+	/* RSK */
+	/* rte_rwlock_read_lock(&mcfg->mlock); */
 	for (i=0; i<RTE_MAX_MEMZONE; i++) {
 		if (mcfg->memzone[i].addr != NULL)
 			(*func)(&mcfg->memzone[i], arg);
 	}
-	rte_rwlock_read_unlock(&mcfg->mlock);
+	/* rte_rwlock_read_unlock(&mcfg->mlock); */
+}
+
+/* RSK  */
+/* Just used in testing
+ * */
+
+const struct rte_memzone *
+simple_memzone_create(const char *name, size_t size) {
+	struct rte_memzone *mz;
+	void * mz_addr;
+
+	RTE_LOG(INFO, EAL, "simple memzone\n");
+	mz = get_next_free_memzone();
+	if (!mz) {
+		RTE_LOG(ERR, EAL, "ERR: simple memzone\n");
+		return NULL;
+	}
+
+	mz_addr = malloc(size);
+
+	snprintf(mz->name, sizeof(mz->name), "%s", name);
+	/* mz->phys_addr = rte_malloc_virt2phy(mz_addr); */
+	/* Hope that this doesn't break! */
+	mz->phys_addr = 0;
+	mz->addr = mz_addr;
+	mz->len = size;
+	mz->hugepage_sz = 0;
+	mz->socket_id = -1;
+	mz->flags = 0;
+	mz->memseg_id = -1;
+	RTE_LOG(INFO, EAL, "RETURNED mz->%p\n", (void *)mz);
+	return mz;
 }

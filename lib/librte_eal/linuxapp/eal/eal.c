@@ -38,7 +38,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <syslog.h>
 #include <getopt.h>
 #include <sys/file.h>
@@ -85,6 +84,9 @@
 #include "eal_hugepages.h"
 #include "eal_options.h"
 #include "eal_vfio.h"
+
+#include "cos_eal_thd.h"
+#include "cos_eal_pci.h"
 
 #define MEMSIZE_IF_NO_HUGE_PAGE (64ULL * 1024ULL * 1024ULL)
 
@@ -172,10 +174,10 @@ rte_eal_config_create(void)
 	void *rte_mem_cfg_addr;
 	int retval;
 
-	const char *pathname = eal_runtime_config_path();
-
 	if (internal_config.no_shconf)
 		return;
+
+	const char *pathname = eal_runtime_config_path();
 
 	/* map the config before hugepage address so that we don't waste a page */
 	if (internal_config.base_virtaddr != 0)
@@ -225,10 +227,10 @@ rte_eal_config_attach(void)
 {
 	struct rte_mem_config *mem_config;
 
-	const char *pathname = eal_runtime_config_path();
-
 	if (internal_config.no_shconf)
 		return;
+
+	const char *pathname = eal_runtime_config_path();
 
 	if (mem_cfg_fd < 0){
 		mem_cfg_fd = open(pathname, O_RDWR);
@@ -307,6 +309,10 @@ rte_config_init(void)
 {
 	rte_config.process_type = internal_config.process_type;
 
+	/* Shared global config not supported */
+	/* Could be point of problem once multicore is setup */
+	internal_config.no_shconf = 1;
+
 	switch (rte_config.process_type){
 	case RTE_PROC_PRIMARY:
 		rte_eal_config_create();
@@ -322,24 +328,24 @@ rte_config_init(void)
 	}
 }
 
-/* Unlocks hugepage directories that were locked by eal_hugepage_info_init */
-static void
-eal_hugedirs_unlock(void)
-{
-	int i;
+/* /1* Unlocks hugepage directories that were locked by eal_hugepage_info_init *1/ */
+/* static void */
+/* eal_hugedirs_unlock(void) */
+/* { */
+/* 	int i; */
 
-	for (i = 0; i < MAX_HUGEPAGE_SIZES; i++)
-	{
-		/* skip uninitialized */
-		if (internal_config.hugepage_info[i].lock_descriptor < 0)
-			continue;
-		/* unlock hugepage file */
-		flock(internal_config.hugepage_info[i].lock_descriptor, LOCK_UN);
-		close(internal_config.hugepage_info[i].lock_descriptor);
-		/* reset the field */
-		internal_config.hugepage_info[i].lock_descriptor = -1;
-	}
-}
+/* 	for (i = 0; i < MAX_HUGEPAGE_SIZES; i++) */
+/* 	{ */
+/* 		/1* skip uninitialized *1/ */
+/* 		if (internal_config.hugepage_info[i].lock_descriptor < 0) */
+/* 			continue; */
+/* 		/1* unlock hugepage file *1/ */
+/* 		flock(internal_config.hugepage_info[i].lock_descriptor, LOCK_UN); */
+/* 		close(internal_config.hugepage_info[i].lock_descriptor); */
+/* 		/1* reset the field *1/ */
+/* 		internal_config.hugepage_info[i].lock_descriptor = -1; */
+/* 	} */
+/* } */
 
 /* display usage */
 static void
@@ -682,11 +688,13 @@ eal_check_mem_on_local_socket(void)
 			"memory on local socket!\n");
 }
 
-static int
-sync_func(__attribute__((unused)) void *arg)
-{
-	return 0;
-}
+/* Used as dummy function for multiprocess slave cores */
+
+/* static int */
+/* sync_func(__attribute__((unused)) void *arg) */
+/* { */
+/* 	return 0; */
+/* } */
 
 inline static void
 rte_eal_mcfg_complete(void)
@@ -749,7 +757,7 @@ int
 rte_eal_init(int argc, char **argv)
 {
 	int i, fctret, ret;
-	pthread_t thread_id;
+	cos_eal_thd_t thread_id;
 	static rte_atomic32_t run_once = RTE_ATOMIC32_INIT(0);
 	const char *logid;
 	char cpuset[RTE_CPU_AFFINITY_STR_LEN];
@@ -771,9 +779,12 @@ rte_eal_init(int argc, char **argv)
 	logid = strrchr(argv[0], '/');
 	logid = strdup(logid ? logid + 1: argv[0]);
 
-	thread_id = pthread_self();
+	thread_id = cos_eal_thd_curr();
 
 	eal_reset_internal_config(&internal_config);
+
+	/* Hugepages not implemented */
+	internal_config.no_hugetlbfs = 1;
 
 	/* set log level as early as possible */
 	eal_log_level_parse(argc, argv);
@@ -845,7 +856,7 @@ rte_eal_init(int argc, char **argv)
 	}
 
 	/* the directories are locked during eal_hugepage_info_init */
-	eal_hugedirs_unlock();
+	/* eal_hugedirs_unlock(); */
 
 	if (rte_eal_memzone_init() < 0) {
 		rte_eal_init_alert("Cannot init memzone\n");
@@ -894,55 +905,69 @@ rte_eal_init(int argc, char **argv)
 		return -1;
 	}
 
+	/* RSK */
+	/* Let composite brute force scan the bus */
+	cos_pci_scan();
+
+	/* Hook pci info into dpdk */
 	if (rte_bus_scan()) {
 		rte_eal_init_alert("Cannot scan the buses for devices\n");
 		rte_errno = ENODEV;
 		return -1;
 	}
 
-	RTE_LCORE_FOREACH_SLAVE(i) {
+	/* Force the linker to link eal_common_pci.c */
+	dummy_func();
 
-		/*
-		 * create communication pipes between master thread
-		 * and children
-		 */
-		if (pipe(lcore_config[i].pipe_master2slave) < 0)
-			rte_panic("Cannot create pipe\n");
-		if (pipe(lcore_config[i].pipe_slave2master) < 0)
-			rte_panic("Cannot create pipe\n");
+	/* Multicore support not implemented */
 
-		lcore_config[i].state = WAIT;
+	RTE_SET_USED(i);
+	RTE_SET_USED(thread_name);
 
-		/* create a thread for each lcore */
-		ret = pthread_create(&lcore_config[i].thread_id, NULL,
-				     eal_thread_loop, NULL);
-		if (ret != 0)
-			rte_panic("Cannot create thread\n");
+	/*  RSK multicore */
 
-		/* Set thread_name for aid in debugging. */
-		snprintf(thread_name, RTE_MAX_THREAD_NAME_LEN,
-			"lcore-slave-%d", i);
-		ret = rte_thread_setname(lcore_config[i].thread_id,
-						thread_name);
-		if (ret != 0)
-			RTE_LOG(DEBUG, EAL,
-				"Cannot set name for lcore thread\n");
-	}
+	/* RTE_LCORE_FOREACH_SLAVE(i) { */
+
+	/* */
+	/* 	 * create communication pipes between master thread */
+	/* 	 * and children */
+	/* 	 *1/ */
+	/* 	if (pipe(lcore_config[i].pipe_master2slave) < 0) */
+	/* 		rte_panic("Cannot create pipe\n"); */
+	/* 	if (pipe(lcore_config[i].pipe_slave2master) < 0) */
+	/* 		rte_panic("Cannot create pipe\n"); */
+
+	/* 	lcore_config[i].state = WAIT; */
+
+	/* 	/1* create a thread for each lcore *1/ */
+	/* 	ret = cos_eal_thd_create(&lcore_config[i].thread_id, eal_thread_loop, NULL); */
+	/* 	if (ret != 0) */
+	/* 		rte_panic("Cannot create thread\n"); */
+
+	/* 	/1* Set thread_name for aid in debugging. *1/ */
+	/* 	snprintf(thread_name, RTE_MAX_THREAD_NAME_LEN, */
+	/* 		"lcore-slave-%d", i); */
+	/* 	ret = rte_thread_setname(lcore_config[i].thread_id, */
+	/* 					thread_name); */
+	/* 	if (ret != 0) */
+	/* 		RTE_LOG(DEBUG, EAL, */
+	/* 			"Cannot set name for lcore thread\n"); */
+	/* } */
 
 	/*
 	 * Launch a dummy function on all slave lcores, so that master lcore
 	 * knows they are all ready when this function returns.
 	 */
-	rte_eal_mp_remote_launch(sync_func, NULL, SKIP_MASTER);
-	rte_eal_mp_wait_lcore();
+	/* rte_eal_mp_remote_launch(sync_func, NULL, SKIP_MASTER); */
+	/* rte_eal_mp_wait_lcore(); */
 
 	/* initialize services so vdevs register service during bus_probe. */
-	ret = rte_service_init();
-	if (ret) {
-		rte_eal_init_alert("rte_service_init() failed\n");
-		rte_errno = ENOEXEC;
-		return -1;
-	}
+	/* ret = rte_service_init(); */
+	/* if (ret) { */
+	/* 	rte_eal_init_alert("rte_service_init() failed\n"); */
+	/* 	rte_errno = ENOEXEC; */
+	/* 	return -1; */
+	/* } */
 
 	/* Probe all the buses and devices/drivers on them */
 	if (rte_bus_probe()) {
@@ -954,11 +979,11 @@ rte_eal_init(int argc, char **argv)
 	/* initialize default service/lcore mappings and start running. Ignore
 	 * -ENOTSUP, as it indicates no service coremask passed to EAL.
 	 */
-	ret = rte_service_start_with_defaults();
-	if (ret < 0 && ret != -ENOTSUP) {
-		rte_errno = ENOEXEC;
-		return -1;
-	}
+	/* ret = rte_service_start_with_defaults(); */
+	/* if (ret < 0 && ret != -ENOTSUP) { */
+	/* 	rte_errno = ENOEXEC; */
+	/* 	return -1; */
+	/* } */
 
 	rte_eal_mcfg_complete();
 

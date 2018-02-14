@@ -44,6 +44,8 @@
 #include <rte_eal.h>
 #include <rte_launch.h>
 
+#include "cos_eal_thd.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -62,7 +64,7 @@ extern "C" {
  */
 struct lcore_config {
 	unsigned detected;         /**< true if lcore was detected */
-	pthread_t thread_id;       /**< pthread identifier */
+	cos_eal_thd_t thread_id;       /**< sl_thread pointer */
 	int pipe_master2slave[2];  /**< communication pipe with master */
 	int pipe_slave2master[2];  /**< communication pipe with master */
 	lcore_function_t * volatile f;         /**< function to call */
@@ -260,7 +262,7 @@ void rte_thread_get_affinity(rte_cpuset_t *cpusetp);
  * @return
  *   On success, return 0; otherwise return a negative value.
  */
-int rte_thread_setname(pthread_t id, const char *name);
+int rte_thread_setname(cos_eal_thd_t id, const char *name);
 
 #ifdef __cplusplus
 }

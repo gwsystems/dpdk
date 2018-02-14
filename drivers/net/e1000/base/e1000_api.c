@@ -95,6 +95,8 @@ out:
 s32 e1000_init_phy_params(struct e1000_hw *hw)
 {
 	s32 ret_val = E1000_SUCCESS;
+	/* RSK */
+	return ret_val;
 
 	if (hw->phy.ops.init_params) {
 		ret_val = hw->phy.ops.init_params(hw);

@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <pthread.h>
+/* #include <pthread.h> */
 #include <sched.h>
 #include <sys/queue.h>
 #include <sys/syscall.h>
@@ -110,12 +110,15 @@ eal_thread_set_affinity(void)
 
 void eal_thread_init_master(unsigned lcore_id)
 {
-	/* set the lcore ID in per-lcore memory area */
-	RTE_PER_LCORE(_lcore_id) = lcore_id;
+	/* /1* set the lcore ID in per-lcore memory area *1/ */
+	/* RTE_PER_LCORE(_lcore_id) = lcore_id; */
 
-	/* set CPU affinity */
-	if (eal_thread_set_affinity() < 0)
-		rte_panic("cannot set affinity\n");
+	/* /1* set CPU affinity *1/ */
+	/* if (eal_thread_set_affinity() < 0) */
+	/* 	rte_panic("cannot set affinity\n"); */
+
+	/* cpu affinity not implemented */
+	RTE_SET_USED(lcore_id);
 }
 
 /* main loop of threads */
@@ -125,11 +128,11 @@ eal_thread_loop(__attribute__((unused)) void *arg)
 	char c;
 	int n, ret;
 	unsigned lcore_id;
-	pthread_t thread_id;
+	cos_eal_thd_t thread_id;
 	int m2s, s2m;
 	char cpuset[RTE_CPU_AFFINITY_STR_LEN];
 
-	thread_id = pthread_self();
+	thread_id = cos_eal_thd_curr();
 
 	/* retrieve our lcore_id from the configuration structure */
 	RTE_LCORE_FOREACH_SLAVE(lcore_id) {
@@ -204,12 +207,12 @@ int rte_sys_gettid(void)
 	return (int)syscall(SYS_gettid);
 }
 
-int rte_thread_setname(pthread_t id, const char *name)
+int rte_thread_setname(cos_eal_thd_t id, const char *name)
 {
 	int ret = -1;
 #if defined(__GLIBC__) && defined(__GLIBC_PREREQ)
 #if __GLIBC_PREREQ(2, 12)
-	ret = pthread_setname_np(id, name);
+	/* ret = pthread_setname_np(id, name); */
 #endif
 #endif
 	RTE_SET_USED(id);

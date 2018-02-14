@@ -39,7 +39,9 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/sysmacros.h>
-#include <linux/pci_regs.h>
+/* RSK */
+/* #include <linux/pci_regs.h> */
+#include "cos_eal_pci.h"
 
 #if defined(RTE_ARCH_X86)
 #include <sys/io.h>
@@ -58,27 +60,42 @@ void *pci_map_addr = NULL;
 
 #define OFF_MAX              ((uint64_t)(off_t)-1)
 
+
+/* RSK */
 int
 pci_uio_read_config(const struct rte_intr_handle *intr_handle,
 		    void *buf, size_t len, off_t offset)
 {
-	return pread(intr_handle->uio_cfg_fd, buf, len, offset);
+	RTE_SET_USED(intr_handle);
+	RTE_SET_USED(buf);
+	RTE_SET_USED(len);
+	RTE_SET_USED(offset);
+	return 0;
+/* return pread(intr_handle->uio_cfg_fd, buf, len, offset); */
 }
 
 int
 pci_uio_write_config(const struct rte_intr_handle *intr_handle,
 		     const void *buf, size_t len, off_t offset)
 {
-	return pwrite(intr_handle->uio_cfg_fd, buf, len, offset);
+	RTE_SET_USED(intr_handle);
+	RTE_SET_USED(buf);
+	RTE_SET_USED(len);
+	RTE_SET_USED(offset);
+	return 0;
+	/* return pwrite(intr_handle->uio_cfg_fd, buf, len, offset); */
 }
 
+/* RSK */
 static int
 pci_uio_set_bus_master(int dev_fd)
 {
 	uint16_t reg;
-	int ret;
+	int ret = 0;
 
-	ret = pread(dev_fd, &reg, sizeof(reg), PCI_COMMAND);
+	RTE_SET_USED(dev_fd);
+	return ret;
+	/* ret = pread(dev_fd, &reg, sizeof(reg), PCI_COMMAND); */
 	if (ret != sizeof(reg)) {
 		RTE_LOG(ERR, EAL,
 			"Cannot read command from PCI config space!\n");
@@ -86,12 +103,12 @@ pci_uio_set_bus_master(int dev_fd)
 	}
 
 	/* return if bus mastering is already on */
-	if (reg & PCI_COMMAND_MASTER)
-		return 0;
+	/* if (reg & PCI_COMMAND_MASTER) */
+		/* return 0; */
 
-	reg |= PCI_COMMAND_MASTER;
+	/* reg |= PCI_COMMAND_MASTER; */
 
-	ret = pwrite(dev_fd, &reg, sizeof(reg), PCI_COMMAND);
+	/* ret = pwrite(dev_fd, &reg, sizeof(reg), PCI_COMMAND); */
 	if (ret != sizeof(reg)) {
 		RTE_LOG(ERR, EAL,
 			"Cannot write command to PCI config space!\n");
@@ -242,61 +259,64 @@ int
 pci_uio_alloc_resource(struct rte_pci_device *dev,
 		struct mapped_pci_resource **uio_res)
 {
-	char dirname[PATH_MAX];
-	char cfgname[PATH_MAX];
-	char devname[PATH_MAX]; /* contains the /dev/uioX */
-	int uio_num;
-	struct rte_pci_addr *loc;
+	/* RSK for no interrupt handling or uio device info */
+	/* char dirname[PATH_MAX]; */
+	/* char cfgname[PATH_MAX]; */
+	/* char devname[PATH_MAX]; /1* contains the /dev/uioX *1/ */
+	/* int uio_num; */
+	/* struct rte_pci_addr *loc; */
 
-	loc = &dev->addr;
+	/* loc = &dev->addr; */
 
-	/* find uio resource */
-	uio_num = pci_get_uio_dev(dev, dirname, sizeof(dirname), 1);
-	if (uio_num < 0) {
-		RTE_LOG(WARNING, EAL, "  "PCI_PRI_FMT" not managed by UIO driver, "
-				"skipping\n", loc->domain, loc->bus, loc->devid, loc->function);
-		return 1;
-	}
-	snprintf(devname, sizeof(devname), "/dev/uio%u", uio_num);
+	/* /1* find uio resource *1/ */
+	/* uio_num = pci_get_uio_dev(dev, dirname, sizeof(dirname), 1); */
+	/* if (uio_num < 0) { */
+	/* 	RTE_LOG(WARNING, EAL, "  "PCI_PRI_FMT" not managed by UIO driver, " */
+	/* 			"skipping\n", loc->domain, loc->bus, loc->devid, loc->function); */
+	/* 	return 1; */
+	/* } */
+	/* snprintf(devname, sizeof(devname), "/dev/uio%u", uio_num); */
 
-	/* save fd if in primary process */
-	dev->intr_handle.fd = open(devname, O_RDWR);
-	if (dev->intr_handle.fd < 0) {
-		RTE_LOG(ERR, EAL, "Cannot open %s: %s\n",
-			devname, strerror(errno));
-		goto error;
-	}
+	/* /1* save fd if in primary process *1/ */
+	/* dev->intr_handle.fd = open(devname, O_RDWR); */
+	/* if (dev->intr_handle.fd < 0) { */
+	/* 	RTE_LOG(ERR, EAL, "Cannot open %s: %s\n", */
+	/* 		devname, strerror(errno)); */
+	/* 	goto error; */
+	/* } */
 
-	snprintf(cfgname, sizeof(cfgname),
-			"/sys/class/uio/uio%u/device/config", uio_num);
-	dev->intr_handle.uio_cfg_fd = open(cfgname, O_RDWR);
-	if (dev->intr_handle.uio_cfg_fd < 0) {
-		RTE_LOG(ERR, EAL, "Cannot open %s: %s\n",
-			cfgname, strerror(errno));
-		goto error;
-	}
+	/* snprintf(cfgname, sizeof(cfgname), */
+	/* 		"/sys/class/uio/uio%u/device/config", uio_num); */
+	/* dev->intr_handle.uio_cfg_fd = open(cfgname, O_RDWR); */
+	/* if (dev->intr_handle.uio_cfg_fd < 0) { */
+	/* 	RTE_LOG(ERR, EAL, "Cannot open %s: %s\n", */
+	/* 		cfgname, strerror(errno)); */
+	/* 	goto error; */
+	/* } */
 
-	if (dev->kdrv == RTE_KDRV_IGB_UIO)
-		dev->intr_handle.type = RTE_INTR_HANDLE_UIO;
-	else {
-		dev->intr_handle.type = RTE_INTR_HANDLE_UIO_INTX;
+	/* if (dev->kdrv == RTE_KDRV_IGB_UIO) */
+	/* 	dev->intr_handle.type = RTE_INTR_HANDLE_UIO; */
+	/* else { */
+	/* 	dev->intr_handle.type = RTE_INTR_HANDLE_UIO_INTX; */
 
 		/* set bus master that is not done by uio_pci_generic */
 		if (pci_uio_set_bus_master(dev->intr_handle.uio_cfg_fd)) {
 			RTE_LOG(ERR, EAL, "Cannot set up bus mastering!\n");
 			goto error;
 		}
-	}
+	/* } */
 
 	/* allocate the mapping details for secondary processes*/
-	*uio_res = rte_zmalloc("UIO_RES", sizeof(**uio_res), 0);
+		/*  RSK should use rte_malloc library once memory is setup*/
+	/* *uio_res = rte_zmalloc("UIO_RES", sizeof(**uio_res), 0); */
+	*uio_res = malloc(sizeof(**uio_res));
 	if (*uio_res == NULL) {
 		RTE_LOG(ERR, EAL,
 			"%s(): cannot store uio mmap details\n", __func__);
 		goto error;
 	}
 
-	snprintf((*uio_res)->path, sizeof((*uio_res)->path), "%s", devname);
+	snprintf((*uio_res)->path, sizeof((*uio_res)->path), "RSK debug");
 	memcpy(&(*uio_res)->pci_addr, &dev->addr, sizeof((*uio_res)->pci_addr));
 
 	return 0;
@@ -306,64 +326,82 @@ error:
 	return -1;
 }
 
+/* RSK */
+
 int
 pci_uio_map_resource_by_index(struct rte_pci_device *dev, int res_idx,
 		struct mapped_pci_resource *uio_res, int map_idx)
 {
-	int fd;
+	/* int fd; */
+	uint32_t a;
 	char devname[PATH_MAX];
 	void *mapaddr;
-	struct rte_pci_addr *loc;
+	/* struct rte_pci_addr *loc; */
 	struct pci_map *maps;
 
-	loc = &dev->addr;
+	/* loc = &dev->addr; */
 	maps = uio_res->maps;
+	struct rte_mem_resource *m_res = &dev->mem_resource[res_idx];
 
 	/* update devname for mmap  */
-	snprintf(devname, sizeof(devname),
-			"%s/" PCI_PRI_FMT "/resource%d",
-			pci_get_sysfs_path(),
-			loc->domain, loc->bus, loc->devid,
-			loc->function, res_idx);
+	/* RSK */
+	/* snprintf(devname, sizeof(devname), */
+	/* 		"%s/" PCI_PRI_FMT "/resource%d", */
+	/* 		pci_get_sysfs_path(), */
+	/* 		loc->domain, loc->bus, loc->devid, */
+	/* 		loc->function, res_idx); */
+	snprintf(devname, sizeof(devname), "RSK debug");
 
 	/* allocate memory to keep path */
-	maps[map_idx].path = rte_malloc(NULL, strlen(devname) + 1, 0);
-	if (maps[map_idx].path == NULL) {
-		RTE_LOG(ERR, EAL, "Cannot allocate memory for path: %s\n",
-				strerror(errno));
-		return -1;
-	}
+	/*  RSK  */
+	/* maps[map_idx].path = rte_malloc(NULL, strlen(devname) + 1, 0); */
+	maps[map_idx].path = malloc(strlen(devname) + 1);
+	/* if (maps[map_idx].path == NULL) { */
+	/* 	RTE_LOG(ERR, EAL, "Cannot allocate memory for path: %s\n", */
+	/* 			strerror(errno)); */
+	/* 	return -1; */
+	/* } */
 
+	/* RSK libposix mmap only works w neg fd*/
 	/*
 	 * open resource file, to mmap it
 	 */
-	fd = open(devname, O_RDWR);
-	if (fd < 0) {
-		RTE_LOG(ERR, EAL, "Cannot open %s: %s\n",
-				devname, strerror(errno));
-		goto error;
-	}
+	/* fd = open(devname, O_RDWR); */
+	/* fd = -1; */
+	/* if (fd < 0) { */
+	/* 	RTE_LOG(ERR, EAL, "Cannot open %s: %s\n", */
+	/* 			devname, strerror(errno)); */
+	/* 	goto error; */
+	/* } */
 
 	/* try mapping somewhere close to the end of hugepages */
-	if (pci_map_addr == NULL)
-		pci_map_addr = pci_find_max_end_va();
+	/* if (pci_map_addr == NULL) */
+	/* 	pci_map_addr = pci_find_max_end_va(); */
 
-	mapaddr = pci_map_resource(pci_map_addr, fd, 0,
-			(size_t)dev->mem_resource[res_idx].len, 0);
-	close(fd);
+	/* RSK */
+	/* mapaddr = pci_map_resource(pci_map_addr, fd, 0, */
+			/* (size_t)m_res->len, 0); */
+	a = m_res->phys_addr;
+	mapaddr = cos_map_phys_to_virt((void *)a,
+		   	(size_t)m_res->len);
+
+	/* // For now, just attempting to use physical mem addresses */
+
+	/* close(fd); */
 	if (mapaddr == MAP_FAILED)
 		goto error;
 
-	pci_map_addr = RTE_PTR_ADD(mapaddr,
-			(size_t)dev->mem_resource[res_idx].len);
+	RTE_LOG(INFO, EAL, "mapped resource at : %p\n", (void *)mapaddr);
 
-	maps[map_idx].phaddr = dev->mem_resource[res_idx].phys_addr;
-	maps[map_idx].size = dev->mem_resource[res_idx].len;
+	/* pci_map_addr = RTE_PTR_ADD(mapaddr, */
+			/* (size_t)dev->mem_resource[res_idx].len); */
+
+	maps[map_idx].phaddr = m_res->phys_addr;
+	maps[map_idx].size = m_res->len;
 	maps[map_idx].addr = mapaddr;
 	maps[map_idx].offset = 0;
 	strcpy(maps[map_idx].path, devname);
-	dev->mem_resource[res_idx].addr = mapaddr;
-
+	m_res->addr = mapaddr;
 	return 0;
 
 error:
@@ -532,21 +570,21 @@ pci_uio_ioport_write(struct rte_pci_ioport *p,
 		if (len >= 4) {
 			size = 4;
 #if defined(RTE_ARCH_X86)
-			outl_p(*(const uint32_t *)s, reg);
+			/* outl_p(*(const uint32_t *)s, reg); */
 #else
 			*(volatile uint32_t *)reg = *(const uint32_t *)s;
 #endif
 		} else if (len >= 2) {
 			size = 2;
 #if defined(RTE_ARCH_X86)
-			outw_p(*(const uint16_t *)s, reg);
+			/* outw_p(*(const uint16_t *)s, reg); */
 #else
 			*(volatile uint16_t *)reg = *(const uint16_t *)s;
 #endif
 		} else {
 			size = 1;
 #if defined(RTE_ARCH_X86)
-			outb_p(*s, reg);
+			/* outb_p(*s, reg); */
 #else
 			*(volatile uint8_t *)reg = *s;
 #endif

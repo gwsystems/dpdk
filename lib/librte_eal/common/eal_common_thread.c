@@ -125,33 +125,39 @@ rte_thread_get_affinity(rte_cpuset_t *cpusetp)
 int
 eal_thread_dump_affinity(char *str, unsigned size)
 {
-	rte_cpuset_t cpuset;
-	unsigned cpu;
-	int ret;
-	unsigned int out = 0;
+	/* rte_cpuset_t cpuset; */
+	/* unsigned cpu; */
+	/* int ret; */
+	/* unsigned int out = 0; */
 
-	rte_thread_get_affinity(&cpuset);
+	/* rte_thread_get_affinity(&cpuset); */
 
-	for (cpu = 0; cpu < RTE_MAX_LCORE; cpu++) {
-		if (!CPU_ISSET(cpu, &cpuset))
-			continue;
+	/* for (cpu = 0; cpu < RTE_MAX_LCORE; cpu++) { */
+	/* 	if (!CPU_ISSET(cpu, &cpuset)) */
+	/* 		continue; */
 
-		ret = snprintf(str + out,
-			       size - out, "%u,", cpu);
-		if (ret < 0 || (unsigned)ret >= size - out) {
-			/* string will be truncated */
-			ret = -1;
-			goto exit;
-		}
+	/* 	ret = snprintf(str + out, */
+	/* 		       size - out, "%u,", cpu); */
+	/* 	if (ret < 0 || (unsigned)ret >= size - out) { */
+	/* 		/1* string will be truncated *1/ */
+	/* 		ret = -1; */
+	/* 		goto exit; */
+	/* 	} */
 
-		out += ret;
-	}
+	/* 	out += ret; */
+	/* } */
 
-	ret = 0;
-exit:
-	/* remove the last separator */
-	if (out > 0)
-		str[out - 1] = '\0';
+	/* ret = 0; */
+/* exit: */
+	/* /1* remove the last separator *1/ */
+	/* if (out > 0) */
+	/* 	str[out - 1] = '\0'; */
 
-	return ret;
+	/* return ret; */
+
+	/* Not implemented */
+	RTE_SET_USED(str);
+	RTE_SET_USED(size);
+
+	return 0;
 }

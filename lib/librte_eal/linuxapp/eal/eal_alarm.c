@@ -88,17 +88,19 @@ static void eal_alarm_callback(void *arg);
 int
 rte_eal_alarm_init(void)
 {
-	intr_handle.type = RTE_INTR_HANDLE_ALARM;
-	/* create a timerfd file descriptor */
-	intr_handle.fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-	if (intr_handle.fd == -1)
-		goto error;
+	/* intr_handle.type = RTE_INTR_HANDLE_ALARM; */
+	/* /1* create a timerfd file descriptor *1/ */
+	/* intr_handle.fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK); */
+	/* if (intr_handle.fd == -1) */
+	/* 	goto error; */
+
+	/*  Alarm not implemented */
 
 	return 0;
 
-error:
-	rte_errno = errno;
-	return -1;
+/* error: */
+/* 	rte_errno = errno; */
+	/* return -1; */
 }
 
 static void

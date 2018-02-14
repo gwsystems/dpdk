@@ -149,6 +149,7 @@ pci_uio_map_resource(struct rte_pci_device *dev)
 
 	return 0;
 error:
+	RTE_LOG(ERR, EAL, "ERR in uio map resource\n");
 	for (i = 0; i < map_idx; i++) {
 		pci_unmap_resource(uio_res->maps[i].addr,
 				(size_t)uio_res->maps[i].size);

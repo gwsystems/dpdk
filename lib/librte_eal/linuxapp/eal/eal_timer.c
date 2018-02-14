@@ -41,7 +41,7 @@
 #include <inttypes.h>
 #include <sys/mman.h>
 #include <sys/queue.h>
-#include <pthread.h>
+/* #include <pthread.h> */
 #include <errno.h>
 
 #include <rte_common.h>
@@ -110,7 +110,7 @@ static uint64_t eal_hpet_resolution_hz = 0;
 /* Incremented 4 times during one 32bits hpet full count */
 static uint32_t eal_hpet_msb;
 
-static pthread_t msb_inc_thread_id;
+/* static pthread_t msb_inc_thread_id; */
 
 /*
  * This function runs on a specific thread to update a global variable
@@ -206,10 +206,12 @@ rte_eal_hpet_init(int make_default)
 
 	eal_hpet_msb = (eal_hpet->counter_l >> 30);
 
+	/* RSK */
 	/* create a thread that will increment a global variable for
 	 * msb (hpet is 32 bits by default under linux) */
-	ret = pthread_create(&msb_inc_thread_id, NULL,
-			(void *(*)(void *))hpet_msb_inc, NULL);
+	/* ret = pthread_create(&msb_inc_thread_id, NULL, */
+			/* (void *(*)(void *))hpet_msb_inc, NULL); */
+	RTE_SET_USED(ret);
 	if (ret != 0) {
 		RTE_LOG(ERR, EAL, "ERROR: Cannot create HPET timer thread!\n");
 		internal_config.no_hpet = 1;
@@ -231,40 +233,40 @@ rte_eal_hpet_init(int make_default)
 }
 #endif
 
-static void
-check_tsc_flags(void)
-{
-	char line[512];
-	FILE *stream;
+/* static void */
+/* check_tsc_flags(void) */
+/* { */
+/* 	char line[512]; */
+/* 	FILE *stream; */
 
-	stream = fopen("/proc/cpuinfo", "r");
-	if (!stream) {
-		RTE_LOG(WARNING, EAL, "WARNING: Unable to open /proc/cpuinfo\n");
-		return;
-	}
+/* 	stream = fopen("/proc/cpuinfo", "r"); */
+/* 	if (!stream) { */
+/* 		RTE_LOG(WARNING, EAL, "WARNING: Unable to open /proc/cpuinfo\n"); */
+/* 		return; */
+/* 	} */
 
-	while (fgets(line, sizeof line, stream)) {
-		char *constant_tsc;
-		char *nonstop_tsc;
+/* 	while (fgets(line, sizeof line, stream)) { */
+/* 		char *constant_tsc; */
+/* 		char *nonstop_tsc; */
 
-		if (strncmp(line, "flags", 5) != 0)
-			continue;
+/* 		if (strncmp(line, "flags", 5) != 0) */
+/* 			continue; */
 
-		constant_tsc = strstr(line, "constant_tsc");
-		nonstop_tsc = strstr(line, "nonstop_tsc");
-		if (!constant_tsc || !nonstop_tsc)
-			RTE_LOG(WARNING, EAL,
-				"WARNING: cpu flags "
-				"constant_tsc=%s "
-				"nonstop_tsc=%s "
-				"-> using unreliable clock cycles !\n",
-				constant_tsc ? "yes":"no",
-				nonstop_tsc ? "yes":"no");
-		break;
-	}
+/* 		constant_tsc = strstr(line, "constant_tsc"); */
+/* 		nonstop_tsc = strstr(line, "nonstop_tsc"); */
+/* 		if (!constant_tsc || !nonstop_tsc) */
+/* 			RTE_LOG(WARNING, EAL, */
+/* 				"WARNING: cpu flags " */
+/* 				"constant_tsc=%s " */
+/* 				"nonstop_tsc=%s " */
+/* 				"-> using unreliable clock cycles !\n", */
+/* 				constant_tsc ? "yes":"no", */
+/* 				nonstop_tsc ? "yes":"no"); */
+/* 		break; */
+/* 	} */
 
-	fclose(stream);
-}
+/* 	fclose(stream); */
+/* } */
 
 uint64_t
 get_tsc_freq(void)
@@ -297,9 +299,11 @@ int
 rte_eal_timer_init(void)
 {
 
-	eal_timer_source = EAL_TIMER_TSC;
+	/* eal_timer_source = EAL_TIMER_TSC; */
 
-	set_tsc_freq();
-	check_tsc_flags();
+	/* set_tsc_freq(); */
+	/* check_tsc_flags(); */
+
+	/* timer not implemented */
 	return 0;
 }
