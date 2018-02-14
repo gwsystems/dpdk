@@ -154,13 +154,16 @@ rte_eth_find_next(uint8_t port_id)
 static void
 rte_eth_dev_data_alloc(void)
 {
-	const unsigned flags = 0;
+	/* const unsigned flags = 0; */
 	const struct rte_memzone *mz;
 
 	if (rte_eal_process_type() == RTE_PROC_PRIMARY) {
-		mz = rte_memzone_reserve(MZ_RTE_ETH_DEV_DATA,
-				RTE_MAX_ETHPORTS * sizeof(*rte_eth_dev_data),
-				rte_socket_id(), flags);
+		/* RSK  */
+		mz = simple_memzone_create(MZ_RTE_ETH_DEV_DATA,
+				RTE_MAX_ETHPORTS * sizeof(*rte_eth_dev_data));
+		/* mz = rte_memzone_reserve(MZ_RTE_ETH_DEV_DATA, */
+				/* RTE_MAX_ETHPORTS * sizeof(*rte_eth_dev_data), */
+				/* rte_socket_id(), flags); */
 	} else
 		mz = rte_memzone_lookup(MZ_RTE_ETH_DEV_DATA);
 	if (mz == NULL)

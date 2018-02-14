@@ -99,9 +99,11 @@ rte_eth_dev_pci_allocate(struct rte_pci_device *dev, size_t private_data_size)
 			return NULL;
 
 		if (private_data_size) {
-			eth_dev->data->dev_private = rte_zmalloc_socket(name,
-				private_data_size, RTE_CACHE_LINE_SIZE,
-				dev->device.numa_node);
+            /* RSK */
+			/* eth_dev->data->dev_private = rte_zmalloc_socket(name, */
+				/* private_data_size, RTE_CACHE_LINE_SIZE, */
+				/* dev->device.numa_node); */
+			eth_dev->data->dev_private = malloc(private_data_size);
 			if (!eth_dev->data->dev_private) {
 				rte_eth_dev_release_port(eth_dev);
 				return NULL;
@@ -159,6 +161,8 @@ rte_eth_dev_pci_generic_probe(struct rte_pci_device *pci_dev,
 
 	RTE_FUNC_PTR_OR_ERR_RET(*dev_init, -EINVAL);
 	ret = dev_init(eth_dev);
+    /*RSK*/
+    RTE_LOG(INFO, EAL, "dev_init returned %d\n", ret);
 	if (ret)
 		rte_eth_dev_pci_release(eth_dev);
 

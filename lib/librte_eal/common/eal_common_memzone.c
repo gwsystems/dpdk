@@ -91,6 +91,8 @@ get_next_free_memzone(void)
 			return &mcfg->memzone[i];
 	}
 
+	/* RSK */
+	RTE_LOG(ERR, EAL, "No free memzones\n");
 	return NULL;
 }
 
@@ -372,17 +374,16 @@ rte_memzone_free(const struct rte_memzone *mz)
 const struct rte_memzone *
 rte_memzone_lookup(const char *name)
 {
-	/* struct rte_mem_config *mcfg; */
+	struct rte_mem_config *mcfg;
 	const struct rte_memzone *memzone = NULL;
 
-	/* mcfg = rte_eal_get_configuration()->mem_config; */
+	mcfg = rte_eal_get_configuration()->mem_config;
 
-	/*RSK*/
-	/* rte_rwlock_read_lock(&mcfg->mlock); */
+	rte_rwlock_read_lock(&mcfg->mlock);
 
 	memzone = memzone_lookup_thread_unsafe(name);
 
-	/* rte_rwlock_read_unlock(&mcfg->mlock); */
+	rte_rwlock_read_unlock(&mcfg->mlock);
 
 	return memzone;
 }
@@ -464,4 +465,36 @@ void rte_memzone_walk(void (*func)(const struct rte_memzone *, void *),
 			(*func)(&mcfg->memzone[i], arg);
 	}
 	/* rte_rwlock_read_unlock(&mcfg->mlock); */
+}
+
+/* RSK  */
+/* Just used in testing
+ * */
+
+const struct rte_memzone *
+simple_memzone_create(const char *name, size_t size) {
+	struct rte_memzone *mz;
+	void * mz_addr;
+
+	RTE_LOG(INFO, EAL, "simple memzone\n");
+	mz = get_next_free_memzone();
+	if (!mz) {
+		RTE_LOG(ERR, EAL, "ERR: simple memzone\n");
+		return NULL;
+	}
+
+	mz_addr = malloc(size);
+
+	snprintf(mz->name, sizeof(mz->name), "%s", name);
+	/* mz->phys_addr = rte_malloc_virt2phy(mz_addr); */
+	/* Hope that this doesn't break! */
+	mz->phys_addr = 0;
+	mz->addr = mz_addr;
+	mz->len = size;
+	mz->hugepage_sz = 0;
+	mz->socket_id = -1;
+	mz->flags = 0;
+	mz->memseg_id = -1;
+	RTE_LOG(INFO, EAL, "RETURNED mz->%p\n", (void *)mz);
+	return mz;
 }
