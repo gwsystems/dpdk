@@ -60,6 +60,7 @@ extern struct rte_pci_bus rte_pci_bus;
 /* RSK */
 int force_link(void);
 int force_link1(void);
+int force_link2(void);
 
 #define SYSFS_PCI_DEVICES "/sys/bus/pci/devices"
 
@@ -322,7 +323,10 @@ pci_probe_all_drivers(struct rte_pci_device *dev)
 		return 0;
 
 	/*  RSK */
+	/* e1000 emulated */
 	force_link1();
+	/*  i40e driver */
+	force_link2();
 
 	FOREACH_DRIVER_ON_PCIBUS(dr) {
 		rc = rte_pci_probe_one_driver(dr, dev);
