@@ -10967,3 +10967,9 @@ i40e_init_log(void)
 	if (i40e_logtype_driver >= 0)
 		rte_log_set_level(i40e_logtype_driver, RTE_LOG_NOTICE);
 }
+
+/* RSK */
+int force_link2(void);
+int force_link2(void) {
+	return 0;
+}

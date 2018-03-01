@@ -430,31 +430,41 @@ pci_update_device(const struct rte_pci_addr *addr)
 /* RSK */
 /* Need to map config space into userland */
 /* Read PCI config space. */
-/* int rte_pci_read_config(const struct rte_pci_device *device, */
-/* 		void *buf, size_t len, off_t offset) */
-/* { */
-/* 	uint16_t read; */
-/* 	if (!buf) return -1; */
-/* 	for (read = 0; read < len - 4; i += 4) { */
-/* 		cos_pci_read_config(device->addr.bus, device->addr.devid, */
-/* 		device->addr.function, offset + read); */
-/* 	} */
-/* 	return read; */
-/* } */
+/* As written, cannot read less than 4 bytes at a time */
+int rte_pci_read_config(const struct rte_pci_device *device,
+		void *buf, size_t len, off_t offset)
+{
+	uint32_t *buffer;
+	unsigned int r;
 
-/* /1* Write PCI config space. *1/ */
-/* int rte_pci_write_config(const struct rte_pci_device *device, */
-/* 		const void *buf, size_t len, off_t offset) */
-/* { */
-/* 	//TODO FINISH THIS */
-/* 	uint16_t write; */
-/* 	if (!buf) return -1; */
-/* 	for (write = 0; write < len - 4; i += 4) { */
-/* 		cos_pci_write_config(device->addr.bus, device->addr.devid, */
-/* 		device->addr.function, offset + write); */
-/* 	} */
-/* 	return read; */
-/* } */
+	if (!buf) return -1;
+	buffer = (uint32_t *)buf;
+
+	for (r = 0; r <= len - 4; r += 4) {
+		*buffer = cos_pci_read_config(device->addr.bus, device->addr.devid,
+				device->addr.function, (uint32_t)offset + r);
+		buffer++;
+	}
+	return r;
+}
+
+/* Write PCI config space. */
+int rte_pci_write_config(const struct rte_pci_device *device,
+		const void *buf, size_t len, off_t offset)
+{
+	const uint32_t *buffer;
+	unsigned int w;
+
+	if (!buf) return -1;
+	buffer = (const uint32_t *)buf;
+
+	for (w = 0; w <= len - 4; w += 4) {
+		cos_pci_write_config(device->addr.bus, device->addr.devid,
+				device->addr.function, (uint32_t)offset + w, *buffer);
+		buffer++;
+	}
+	return w;
+}
 
 #if defined(RTE_ARCH_X86)
 static int
@@ -647,6 +657,8 @@ rte_pci_scan(void) {
 	int i, j;
 	struct rte_pci_device *pci_device_list, *rte_dev;
 	struct cos_pci_device *cos_dev;
+	/* uint32_t buf = 0; */
+	/* uint8_t offset; */
 
 	/* Be careful about memory here! */
 	/* Free this list when pci_bus is closed? */
@@ -669,8 +681,17 @@ rte_pci_scan(void) {
 		rte_dev->id.subsystem_device_id = PCI_ANY_ID;
 		for (j = 0; j < PCI_MAX_RESOURCE; j++) {
 			rte_dev->mem_resource[j].phys_addr = cos_dev->bar[j].raw;
-			rte_dev->mem_resource[j].len = cos_dev->bar[j].size;
-			rte_dev->mem_resource[j].addr = NULL; /* Not sure what it should be */
+			/* if (!cos_dev->bar[j].raw) continue; */
+			/* RSK Get size of region */
+			/* buf = 0xFFFFFFFF; */
+			/* offset = (j + 4) << 2; */
+			/* rte_pci_write_config(rte_dev, &buf, sizeof(buf), offset); */
+			/* rte_pci_read_config(rte_dev, &buf, sizeof(buf), offset); */
+			/* buf = ~(buf & ~0xF) + 1; */
+			/* rte_dev->mem_resource[j].len = buf; */
+			/* buf = rte_dev->mem_resource[j].phys_addr; */
+			/* rte_pci_write_config(rte_dev, &buf, sizeof(buf), offset); */
+			rte_dev->mem_resource[j].addr = NULL; /* Has yet to be mapped */
 		}
 		rte_dev->max_vfs = 0;
 		rte_dev->kdrv = RTE_KDRV_UIO_GENERIC;
@@ -700,12 +721,24 @@ rte_pci_scan(void) {
 		/* 			free(rte_dev); */
 		/* 		} */
 		/* 	} */
-		/* } */
+					/* for(k=0; k<PCI_BAR_NUM; k++) { */
+				/* 	bar       = &devices[dev_num].bar[k]; */
+				/* 	bar->raw  = devices[dev_num].data[4 + k]; */
+				/* 	reg       = (k + 4) << 2; */
+				/* 	/1* printc("Region %d: %x\n", k, bar->raw); *1/ */
+				/* 	cos_pci_write_config(i, j, f, reg, PCI_BITMASK_32); */
+				/* 	tmp       = cos_pci_read_config(i, j, f, reg); */
+				/* } */	/* } */
 	}
 	RTE_LOG(INFO, EAL, "Scan found %d devices\n", dev_num);
 	TAILQ_FOREACH(rte_dev, &rte_pci_bus.device_list, next) {
 		RTE_LOG(INFO, EAL, "%x:%x:%x vendor: %x device: %x\n", rte_dev->addr.bus, rte_dev->addr.devid,
 				rte_dev->addr.function, rte_dev->id.vendor_id, rte_dev->id.device_id);
+		for (j = 0; j < PCI_MAX_RESOURCE; j++) {
+			if (rte_dev->mem_resource[j].phys_addr)
+				RTE_LOG(INFO, EAL, "\tRegion %d: %x [%x]\n", j, (unsigned int)rte_dev->mem_resource[j].phys_addr,
+						(unsigned int)rte_dev->mem_resource[j].len);
+		}
 	}
 	return 0;
 }
