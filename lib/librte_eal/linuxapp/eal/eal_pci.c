@@ -443,7 +443,6 @@ int rte_pci_read_config(const struct rte_pci_device *device,
 	for (r = 0; r <= len - 4; r += 4) {
 		*buffer = cos_pci_read_config(device->addr.bus, device->addr.devid,
 				device->addr.function, (uint32_t)offset + r);
-		buffer++;
 	}
 	return r;
 }
@@ -461,7 +460,6 @@ int rte_pci_write_config(const struct rte_pci_device *device,
 	for (w = 0; w <= len - 4; w += 4) {
 		cos_pci_write_config(device->addr.bus, device->addr.devid,
 				device->addr.function, (uint32_t)offset + w, *buffer);
-		buffer++;
 	}
 	return w;
 }
@@ -657,8 +655,6 @@ rte_pci_scan(void) {
 	int i, j;
 	struct rte_pci_device *pci_device_list, *rte_dev;
 	struct cos_pci_device *cos_dev;
-	/* uint32_t buf = 0; */
-	/* uint8_t offset; */
 
 	/* Be careful about memory here! */
 	/* Free this list when pci_bus is closed? */
@@ -680,17 +676,19 @@ rte_pci_scan(void) {
 		rte_dev->id.subsystem_vendor_id = PCI_ANY_ID;
 		rte_dev->id.subsystem_device_id = PCI_ANY_ID;
 		for (j = 0; j < PCI_MAX_RESOURCE; j++) {
-			rte_dev->mem_resource[j].phys_addr = cos_dev->bar[j].raw;
-			/* if (!cos_dev->bar[j].raw) continue; */
+			rte_dev->mem_resource[j].phys_addr = cos_dev->bar[j].raw & 0xFFFFFFF0;
+			if (!cos_dev->bar[j].raw) continue;
 			/* RSK Get size of region */
-			/* buf = 0xFFFFFFFF; */
-			/* offset = (j + 4) << 2; */
-			/* rte_pci_write_config(rte_dev, &buf, sizeof(buf), offset); */
-			/* rte_pci_read_config(rte_dev, &buf, sizeof(buf), offset); */
-			/* buf = ~(buf & ~0xF) + 1; */
-			/* rte_dev->mem_resource[j].len = buf; */
-			/* buf = rte_dev->mem_resource[j].phys_addr; */
-			/* rte_pci_write_config(rte_dev, &buf, sizeof(buf), offset); */
+			uint32_t buf = 0;
+			uint8_t offset;
+			buf = 0xFFFFFFFF;
+			offset = (j + 4) << 2;
+			rte_pci_write_config(rte_dev, &buf, sizeof(buf), offset);
+			rte_pci_read_config(rte_dev, &buf, sizeof(buf), offset);
+			buf = ~(buf & ~0xF) + 1;
+			rte_dev->mem_resource[j].len = buf;
+			buf = cos_dev->bar[j].raw;
+			rte_pci_write_config(rte_dev, &buf, sizeof(buf), offset);
 			rte_dev->mem_resource[j].addr = NULL; /* Has yet to be mapped */
 		}
 		rte_dev->max_vfs = 0;
