@@ -108,6 +108,7 @@ rte_eth_dev_pci_allocate(struct rte_pci_device *dev, size_t private_data_size)
 				rte_eth_dev_release_port(eth_dev);
 				return NULL;
 			}
+			memset(eth_dev->data->dev_private, 0, private_data_size);
 		}
 	} else {
 		eth_dev = rte_eth_dev_attach_secondary(name);

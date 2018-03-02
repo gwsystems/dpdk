@@ -47,6 +47,7 @@
 
 /* The frequency of the RDTSC timer resolution */
 static uint64_t eal_tsc_resolution_hz;
+static uint64_t eal_cyc_per_us = 2000;
 
 /* Pointer to user delay function */
 void (*rte_delay_us)(unsigned int) = NULL;
@@ -55,7 +56,8 @@ void
 rte_delay_us_block(unsigned int us)
 {
 	const uint64_t start = rte_get_timer_cycles();
-	const uint64_t ticks = (uint64_t)us * rte_get_timer_hz() / 1E6;
+	/* const uint64_t ticks = (uint64_t)us * rte_get_timer_hz() / 1E6; */
+	const uint64_t ticks = (uint64_t)us * eal_cyc_per_us;
 	while ((rte_get_timer_cycles() - start) < ticks)
 		rte_pause();
 }
