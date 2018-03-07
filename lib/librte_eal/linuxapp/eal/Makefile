@@ -57,7 +57,7 @@ endif
 # specific to linuxapp exec-env
 SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) := eal.c
 SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_hugepage_info.c
-# SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_memory.c
+SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_memory.c
 ifeq ($(CONFIG_RTE_LIBRTE_XEN_DOM0),y)
 SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_xen_memory.c
 endif
@@ -121,7 +121,7 @@ CFLAGS_eal_log.o := -D_GNU_SOURCE
 CFLAGS_eal_alarm.o := -D_GNU_SOURCE
 # CFLAGS_eal_common_log.o := -D_GNU_SOURCE
 CFLAGS_eal_hugepage_info.o := -D_GNU_SOURCE
-# CFLAGS_eal_memory.o := -D_GNU_SOURCE
+CFLAGS_eal_memory.o := -D_GNU_SOURCE
 CFLAGS_eal_pci.o := -D_GNU_SOURCE
 CFLAGS_eal_pci_uio.o := -D_GNU_SOURCE
 # CFLAGS_eal_pci_vfio.o := -D_GNU_SOURCE

@@ -133,85 +133,13 @@ test_phys_addrs_available(void)
 /*
  * Get physical address of any mapped virtual address in the current process.
  */
+
+/* RSK messing with stuff */
 phys_addr_t
 rte_mem_virt2phy(const void *virtaddr)
 {
-	int fd, retval;
-	uint64_t page, physaddr;
-	unsigned long virt_pfn;
-	int page_size;
-	off_t offset;
-
-	/* when using dom0, /proc/self/pagemap always returns 0, check in
-	 * dpdk memory by browsing the memsegs */
-	if (rte_xen_dom0_supported()) {
-		struct rte_mem_config *mcfg;
-		struct rte_memseg *memseg;
-		unsigned i;
-
-		mcfg = rte_eal_get_configuration()->mem_config;
-		for (i = 0; i < RTE_MAX_MEMSEG; i++) {
-			memseg = &mcfg->memseg[i];
-			if (memseg->addr == NULL)
-				break;
-			if (virtaddr > memseg->addr &&
-					virtaddr < RTE_PTR_ADD(memseg->addr,
-						memseg->len)) {
-				return memseg->phys_addr +
-					RTE_PTR_DIFF(virtaddr, memseg->addr);
-			}
-		}
-
-		return RTE_BAD_PHYS_ADDR;
-	}
-
-	/* Cannot parse /proc/self/pagemap, no need to log errors everywhere */
-	if (!phys_addrs_available)
-		return RTE_BAD_PHYS_ADDR;
-
-	/* standard page size */
-	page_size = getpagesize();
-
-	fd = open("/proc/self/pagemap", O_RDONLY);
-	if (fd < 0) {
-		RTE_LOG(ERR, EAL, "%s(): cannot open /proc/self/pagemap: %s\n",
-			__func__, strerror(errno));
-		return RTE_BAD_PHYS_ADDR;
-	}
-
-	virt_pfn = (unsigned long)virtaddr / page_size;
-	offset = sizeof(uint64_t) * virt_pfn;
-	if (lseek(fd, offset, SEEK_SET) == (off_t) -1) {
-		RTE_LOG(ERR, EAL, "%s(): seek error in /proc/self/pagemap: %s\n",
-				__func__, strerror(errno));
-		close(fd);
-		return RTE_BAD_PHYS_ADDR;
-	}
-
-	retval = read(fd, &page, PFN_MASK_SIZE);
-	close(fd);
-	if (retval < 0) {
-		RTE_LOG(ERR, EAL, "%s(): cannot read /proc/self/pagemap: %s\n",
-				__func__, strerror(errno));
-		return RTE_BAD_PHYS_ADDR;
-	} else if (retval != PFN_MASK_SIZE) {
-		RTE_LOG(ERR, EAL, "%s(): read %d bytes from /proc/self/pagemap "
-				"but expected %d:\n",
-				__func__, retval, PFN_MASK_SIZE);
-		return RTE_BAD_PHYS_ADDR;
-	}
-
-	/*
-	 * the pfn (page frame number) are bits 0-54 (see
-	 * pagemap.txt in linux Documentation)
-	 */
-	if ((page & 0x7fffffffffffffULL) == 0)
-		return RTE_BAD_PHYS_ADDR;
-
-	physaddr = ((page & 0x7fffffffffffffULL) * page_size)
-		+ ((unsigned long)virtaddr % page_size);
-
-	return physaddr;
+	RTE_SET_USED(virtaddr);
+	return RTE_BAD_PHYS_ADDR;
 }
 
 /*
