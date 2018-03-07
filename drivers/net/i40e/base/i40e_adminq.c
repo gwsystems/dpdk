@@ -615,6 +615,9 @@ enum i40e_status_code i40e_init_adminq(struct i40e_hw *hw)
 	int retry = 0;
 #endif
 
+	/* RSK Testing debug function */
+	i40e_debug(hw, I40E_DEBUG_AQ_MESSAGE, "init aminq\n");
+
 	/* verify input for valid configuration */
 	if ((hw->aq.num_arq_entries == 0) ||
 	    (hw->aq.num_asq_entries == 0) ||

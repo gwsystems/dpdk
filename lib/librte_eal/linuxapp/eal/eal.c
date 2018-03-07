@@ -789,6 +789,12 @@ rte_eal_init(int argc, char **argv)
 	/* set log level as early as possible */
 	eal_log_level_parse(argc, argv);
 
+	/* RSK allow debugging info to come through.
+	 * Note: this is typically parsed from the cli
+	 * args using the above function but this is
+	 * simpler */
+	rte_log_set_global_level(RTE_LOG_DEBUG);
+
 	if (rte_eal_cpu_init() < 0) {
 		rte_eal_init_alert("Cannot detect lcores.");
 		rte_errno = ENOTSUP;
