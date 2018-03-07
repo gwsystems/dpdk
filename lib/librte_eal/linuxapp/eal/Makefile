@@ -44,7 +44,8 @@ VPATH += $(RTE_SDK)/lib/librte_eal/common
 CFLAGS += -I$(SRCDIR)/include
 CFLAGS += -I$(RTE_SDK)/lib/librte_eal/common
 CFLAGS += -I$(RTE_SDK)/lib/librte_eal/common/include
-CFLAGS += $(WERROR_FLAGS) -O3
+# RSK Disable optimizations
+CFLAGS += $(WERROR_FLAGS) -O0
 
 LDLIBS += -ldl
 # LDLIBS += -lpthread

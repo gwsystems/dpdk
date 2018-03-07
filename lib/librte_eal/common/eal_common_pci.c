@@ -61,6 +61,7 @@ extern struct rte_pci_bus rte_pci_bus;
 int force_link(void);
 int force_link1(void);
 int force_link2(void);
+int force_link3(void);
 
 #define SYSFS_PCI_DEVICES "/sys/bus/pci/devices"
 
@@ -327,6 +328,8 @@ pci_probe_all_drivers(struct rte_pci_device *dev)
 	force_link1();
 	/*  i40e driver */
 	force_link2();
+	/* mempool ring driver */
+	force_link3();
 
 	FOREACH_DRIVER_ON_PCIBUS(dr) {
 		rc = rte_pci_probe_one_driver(dr, dev);

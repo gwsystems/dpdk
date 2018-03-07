@@ -72,6 +72,10 @@ rte_malloc_socket(const char *type, size_t size, unsigned align, int socket_arg)
 	int socket, i;
 	void *ret;
 
+	/* RSK: simplified rte_malloc until we decide to plug in hugepages */
+	if (size == 0) return NULL;
+	return malloc(size);
+
 	/* return NULL if size is 0 or alignment is not power-of-2 */
 	if (size == 0 || (align && !rte_is_power_of_2(align)))
 		return NULL;

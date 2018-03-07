@@ -159,6 +159,11 @@ static const struct rte_mempool_ops ops_sp_mc = {
 	.get_count = common_ring_get_count,
 };
 
+int force_link3(void)
+{
+	return 0;
+}
+
 MEMPOOL_REGISTER_OPS(ops_mp_mc);
 MEMPOOL_REGISTER_OPS(ops_sp_sc);
 MEMPOOL_REGISTER_OPS(ops_mp_sc);

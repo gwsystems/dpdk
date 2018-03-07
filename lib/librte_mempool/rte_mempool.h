@@ -79,6 +79,9 @@
 #include <rte_memcpy.h>
 #include <rte_common.h>
 
+/* RSK */
+int force_link3(void);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
