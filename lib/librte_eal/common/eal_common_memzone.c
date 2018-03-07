@@ -54,6 +54,9 @@
 #include "malloc_elem.h"
 #include "eal_private.h"
 
+/* RSK */
+#define SIMPLE_MZ 1
+
 static inline const struct rte_memzone *
 memzone_lookup_thread_unsafe(const char *name)
 {
@@ -135,6 +138,14 @@ memzone_reserve_aligned_thread_unsafe(const char *name, size_t len,
 	struct rte_mem_config *mcfg;
 	size_t requested_len;
 	int socket, i;
+
+#if SIMPLE_MZ
+	return simple_memzone_create(name, len);
+	RTE_SET_USED(socket_id);
+	RTE_SET_USED(flags);
+	RTE_SET_USED(align);
+	RTE_SET_USED(bound);
+#endif
 
 	/* get pointer to global configuration */
 	mcfg = rte_eal_get_configuration()->mem_config;
@@ -328,8 +339,14 @@ const struct rte_memzone *
 rte_memzone_reserve(const char *name, size_t len, int socket_id,
 		    unsigned flags)
 {
+#if SIMPLE_MZ
+	return simple_memzone_create(name, len);
+	RTE_SET_USED(socket_id);
+	RTE_SET_USED(flags);
+#else
 	return rte_memzone_reserve_thread_safe(name, len, socket_id,
 					       flags, RTE_CACHE_LINE_SIZE, 0);
+#endif
 }
 
 int
@@ -339,6 +356,9 @@ rte_memzone_free(const struct rte_memzone *mz)
 	int ret = 0;
 	void *addr;
 	unsigned idx;
+
+	/* RSK */
+	RTE_LOG(ERR, EAL, "Free called on mz: %p\n", mz->addr);
 
 	if (mz == NULL)
 		return -EINVAL;
