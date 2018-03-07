@@ -89,6 +89,10 @@ rte_dump_physmem_layout(FILE *f)
 	const struct rte_mem_config *mcfg;
 	unsigned i = 0;
 
+	/* RSK */
+	if (f)
+		RTE_SET_USED(f);
+
 	/* get pointer to global configuration */
 	mcfg = rte_eal_get_configuration()->mem_config;
 
@@ -96,7 +100,8 @@ rte_dump_physmem_layout(FILE *f)
 		if (mcfg->memseg[i].addr == NULL)
 			break;
 
-		fprintf(f, "Segment %u: phys:0x%"PRIx64", len:%zu, "
+		/* RSK */
+		RTE_LOG(INFO, EAL, "Segment %u: phys:0x%"PRIx64", len:%zu, "
 		       "virt:%p, socket_id:%"PRId32", "
 		       "hugepage_sz:%"PRIu64", nchannel:%"PRIx32", "
 		       "nrank:%"PRIx32"\n", i,
