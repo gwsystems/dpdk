@@ -237,6 +237,8 @@ rte_ring_free(struct rte_ring *r)
 	struct rte_ring_list *ring_list = NULL;
 	struct rte_tailq_entry *te;
 
+	RTE_LOG(INFO, RING, "Attempting to free ring: memzone = %p\n", r->memzone);
+
 	if (r == NULL)
 		return;
 
