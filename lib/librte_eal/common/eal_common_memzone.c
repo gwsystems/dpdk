@@ -53,6 +53,7 @@
 #include "malloc_heap.h"
 #include "malloc_elem.h"
 #include "eal_private.h"
+#include "cos_eal_pci.h"
 
 /* RSK */
 #define SIMPLE_MZ 1
@@ -509,8 +510,7 @@ simple_memzone_create(const char *name, size_t size) {
 
 	snprintf(mz->name, sizeof(mz->name), "%s", name);
 	/* mz->phys_addr = rte_malloc_virt2phy(mz_addr); */
-	/* Hope that this doesn't break! */
-	mz->phys_addr = 0;
+	mz->phys_addr = (phys_addr_t)(uintptr_t)cos_map_virt_to_phys(mz_addr);
 	mz->addr = mz_addr;
 	mz->len = size;
 	mz->hugepage_sz = 0;
