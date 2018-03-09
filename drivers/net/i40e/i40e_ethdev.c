@@ -1121,10 +1121,7 @@ eth_i40e_dev_init(struct rte_eth_dev *dev)
 
 	/* Initialize the parameters for adminq */
 	i40e_init_adminq_parameter(hw);
-	/* RSK debugging -- this function seems to fail */
-	PMD_INIT_LOG(ERR, "Dbg: adminq ");
 	ret = i40e_init_adminq(hw);
-	PMD_INIT_LOG(ERR, "adminq\n");
 	if (ret != I40E_SUCCESS) {
 		PMD_INIT_LOG(ERR, "Failed to init adminq: %d", ret);
 		return -EIO;

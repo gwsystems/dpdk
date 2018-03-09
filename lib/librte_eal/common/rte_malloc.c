@@ -58,6 +58,7 @@
 void rte_free(void *addr)
 {
 	if (addr == NULL) return;
+	return free(addr);
 	if (malloc_elem_free(malloc_elem_from_data(addr)) < 0)
 		rte_panic("Fatal error: Invalid memory\n");
 }
@@ -74,7 +75,9 @@ rte_malloc_socket(const char *type, size_t size, unsigned align, int socket_arg)
 
 	/* RSK: simplified rte_malloc until we decide to plug in hugepages */
 	if (size == 0) return NULL;
-	return malloc(size);
+	ret = malloc(size);
+	if (ret) memset(ret, 0, size);
+	return ret;
 
 	/* return NULL if size is 0 or alignment is not power-of-2 */
 	if (size == 0 || (align && !rte_is_power_of_2(align)))

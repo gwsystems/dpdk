@@ -891,6 +891,7 @@ rte_memcpy_aligned(void *dst, const void *src, size_t n)
 static inline void *
 rte_memcpy(void *dst, const void *src, size_t n)
 {
+  return memcpy(dst, src, n);
 	if (!(((uintptr_t)dst | (uintptr_t)src) & ALIGNMENT_MASK))
 		return rte_memcpy_aligned(dst, src, n);
 	else
