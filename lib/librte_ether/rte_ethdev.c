@@ -68,6 +68,17 @@
 #include "rte_ether.h"
 #include "rte_ethdev.h"
 
+#define RX_RING_SIZE 128
+#define TX_RING_SIZE 512
+
+/* RSK */
+#define NUM_MBUFS 8191
+#define MBUF_CACHE_SIZE 250
+#define BURST_SIZE 32
+
+static const struct rte_eth_conf port_conf_default = {
+	.rxmode = { .max_rx_pkt_len = ETHER_MAX_LEN }
+};
 static const char *MZ_RTE_ETH_DEV_DATA = "rte_eth_dev_data";
 struct rte_eth_dev rte_eth_devices[RTE_MAX_ETHPORTS];
 static struct rte_eth_dev_data *rte_eth_dev_data;
@@ -804,6 +815,7 @@ rte_eth_dev_configure(uint8_t port_id, uint16_t nb_rx_q, uint16_t nb_tx_q,
 				port_id, diag);
 		return diag;
 	}
+	RTE_LOG(INFO, EAL, "CONFIG \n");
 
 	diag = rte_eth_dev_tx_queue_config(dev, nb_tx_q);
 	if (diag != 0) {
@@ -812,8 +824,11 @@ rte_eth_dev_configure(uint8_t port_id, uint16_t nb_rx_q, uint16_t nb_tx_q,
 		rte_eth_dev_rx_queue_config(dev, 0);
 		return diag;
 	}
+	RTE_LOG(ERR, EAL, "CONFIG: dev_config %p \n",
+				(void *) dev->dev_ops->dev_configure);
 
 	diag = (*dev->dev_ops->dev_configure)(dev);
+	RTE_LOG(INFO, EAL, "CONFIG: after dev_config \n");
 	if (diag != 0) {
 		RTE_PMD_DEBUG_TRACE("port%d dev_configure = %d\n",
 				port_id, diag);
@@ -3411,4 +3426,102 @@ rte_eth_dev_adjust_nb_rx_tx_desc(uint8_t port_id,
 		rte_eth_dev_adjust_nb_desc(nb_tx_desc, &dev_info.tx_desc_lim);
 
 	return 0;
+}
+
+/* basicfwd.c: Basic DPDK skeleton forwarding example. */
+
+/*
+ * Initializes a given port using global settings and with the RX buffers
+ * coming from the mbuf_pool passed as a parameter.
+ */
+static inline int
+port_init(uint8_t port, struct rte_mempool *mbuf_pool)
+{
+	struct rte_eth_conf port_conf = port_conf_default;
+	const uint16_t rx_rings = 1, tx_rings = 1;
+	uint16_t nb_rxd = RX_RING_SIZE;
+	uint16_t nb_txd = TX_RING_SIZE;
+	int retval;
+	uint16_t q;
+
+	RTE_LOG(INFO, EAL, "INIT \n");
+	if (port >= rte_eth_dev_count())
+		return -1;
+
+	RTE_LOG(INFO, EAL, "INITI \n");
+	/* Configure the Ethernet device. */
+	retval = rte_eth_dev_configure(port, rx_rings, tx_rings, &port_conf);
+	if (retval != 0)
+		return retval;
+
+	RTE_LOG(INFO, EAL, "INIT \n");
+	retval = rte_eth_dev_adjust_nb_rx_tx_desc(port, &nb_rxd, &nb_txd);
+	if (retval != 0)
+		return retval;
+
+	RTE_LOG(INFO, EAL, "INIT \n");
+	/* Allocate and set up 1 RX queue per Ethernet port. */
+	for (q = 0; q < rx_rings; q++) {
+		retval = rte_eth_rx_queue_setup(port, q, nb_rxd,
+				rte_eth_dev_socket_id(port), NULL, mbuf_pool);
+		if (retval < 0)
+			return retval;
+	}
+
+	RTE_LOG(INFO, EAL, "INIT \n");
+	/* Allocate and set up 1 TX queue per Ethernet port. */
+	for (q = 0; q < tx_rings; q++) {
+		retval = rte_eth_tx_queue_setup(port, q, nb_txd,
+				rte_eth_dev_socket_id(port), NULL);
+		if (retval < 0)
+			return retval;
+	}
+
+	RTE_LOG(INFO, EAL, "INIT \n");
+	/* Start the Ethernet port. */
+	retval = rte_eth_dev_start(port);
+	if (retval < 0)
+		return retval;
+
+	/* Display the port MAC address. */
+	/* struct ether_addr addr; */
+	/* rte_eth_macaddr_get(port, &addr); */
+	/* printf("Port %u MAC: %02" PRIx8 " %02" PRIx8 " %02" PRIx8 */
+	/* 		   " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 "\n", */
+	/* 		(unsigned)port, */
+	/* 		addr.addr_bytes[0], addr.addr_bytes[1], */
+	/* 		addr.addr_bytes[2], addr.addr_bytes[3], */
+	/* 		addr.addr_bytes[4], addr.addr_bytes[5]); */
+
+	/* Enable RX in promiscuous mode for the Ethernet device. */
+	rte_eth_promiscuous_enable(port);
+
+	return 0;
+}
+
+int
+rte_eth_dev_cos_setup_ports(unsigned nb_ports,
+		struct rte_mempool *mp)
+{
+	uint8_t portid;
+	for (portid = 0; portid < nb_ports; portid++) {
+		RTE_LOG(INFO, EAL, "Port %d \n", portid);
+		if (port_init(portid, mp) != 0) {
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+uint16_t rte_eth_rx_burst_cos(uint8_t port_id, uint16_t queue_id,
+        struct rte_mbuf **rx_pkts, uint16_t nb_pkts)
+{
+	return rte_eth_rx_burst(port_id, queue_id, rx_pkts, nb_pkts);
+}
+
+uint16_t rte_eth_tx_burst_cos(uint8_t port_id, uint16_t queue_id,
+        struct rte_mbuf **tx_pkts, uint16_t nb_pkts)
+{
+	return rte_eth_tx_burst(port_id, queue_id, tx_pkts, nb_pkts);
 }

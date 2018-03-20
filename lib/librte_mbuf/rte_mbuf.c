@@ -469,3 +469,10 @@ rte_get_tx_ol_flag_list(uint64_t mask, char *buf, size_t buflen)
 
 	return 0;
 }
+
+/*RSK */
+int rte_pktmbuf_alloc_bulk_cos(struct rte_mempool *pool,
+	 struct rte_mbuf **mbufs, unsigned count)
+{
+    return rte_pktmbuf_alloc_bulk(pool, mbufs, count);
+}
