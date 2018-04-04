@@ -2729,10 +2729,6 @@ int rte_eth_dev_set_vlan_pvid(uint8_t port_id, uint16_t pvid, int on);
  *   of pointers to *rte_mbuf* structures effectively supplied to the
  *   *rx_pkts* array.
  */
- /* RSK removing the static inline qualifiers will have an effect on performance */
-uint16_t rte_eth_rx_burst_cos(uint8_t port_id, uint16_t queue_id,
-        struct rte_mbuf **rx_pkts, uint16_t nb_pkts);
-
 static inline uint16_t
 rte_eth_rx_burst(uint8_t port_id, uint16_t queue_id,
 		 struct rte_mbuf **rx_pkts, const uint16_t nb_pkts)
@@ -2995,10 +2991,6 @@ static inline int rte_eth_tx_descriptor_status(uint8_t port_id,
  *   the transmit ring. The return value can be less than the value of the
  *   *tx_pkts* parameter when the transmit ring is full or has been filled up.
  */
-/* RSK removing the static inline qualifiers will have an effect on performance */
-uint16_t rte_eth_tx_burst_cos(uint8_t port_id, uint16_t queue_id,
-        struct rte_mbuf **tx_pkts, uint16_t nb_pkts);
-
 static inline uint16_t
 rte_eth_tx_burst(uint8_t port_id, uint16_t queue_id,
 		 struct rte_mbuf **tx_pkts, uint16_t nb_pkts)
@@ -4443,12 +4435,6 @@ rte_eth_dev_get_name_by_port(uint8_t port_id, char *name);
 int rte_eth_dev_adjust_nb_rx_tx_desc(uint8_t port_id,
 				     uint16_t *nb_rx_desc,
 				     uint16_t *nb_tx_desc);
-
-/* RSK
- * Init ports!
- * */
-int rte_eth_dev_cos_setup_ports(unsigned nb_ports,
-        struct rte_mempool *mp);
 
 #ifdef __cplusplus
 }
