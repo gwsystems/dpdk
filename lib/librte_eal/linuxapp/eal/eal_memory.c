@@ -75,6 +75,7 @@
 #include "eal_internal_cfg.h"
 #include "eal_filesystem.h"
 #include "eal_hugepages.h"
+#include "cos_eal_pci.h"
 
 #define PFN_MASK_SIZE	8
 
@@ -133,13 +134,12 @@ test_phys_addrs_available(void)
 /*
  * Get physical address of any mapped virtual address in the current process.
  */
-
-/* RSK messing with stuff */
 phys_addr_t
 rte_mem_virt2phy(const void *virtaddr)
 {
-	RTE_SET_USED(virtaddr);
-	return RTE_BAD_PHYS_ADDR;
+	unsigned long addr = (unsigned long)virtaddr;
+	void *page_a = (void *)(addr & 0xfffff000);
+	return (unsigned long)cos_map_virt_to_phys(page_a) | (addr & 0xfff);
 }
 
 /*
