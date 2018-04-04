@@ -162,8 +162,6 @@ rte_eth_dev_pci_generic_probe(struct rte_pci_device *pci_dev,
 
 	RTE_FUNC_PTR_OR_ERR_RET(*dev_init, -EINVAL);
 	ret = dev_init(eth_dev);
-    /*RSK*/
-    RTE_LOG(INFO, EAL, "dev_init returned %d\n", ret);
 	if (ret)
 		rte_eth_dev_pci_release(eth_dev);
 

@@ -815,7 +815,6 @@ rte_eth_dev_configure(uint8_t port_id, uint16_t nb_rx_q, uint16_t nb_tx_q,
 				port_id, diag);
 		return diag;
 	}
-	RTE_LOG(INFO, EAL, "CONFIG \n");
 
 	diag = rte_eth_dev_tx_queue_config(dev, nb_tx_q);
 	if (diag != 0) {
@@ -824,11 +823,8 @@ rte_eth_dev_configure(uint8_t port_id, uint16_t nb_rx_q, uint16_t nb_tx_q,
 		rte_eth_dev_rx_queue_config(dev, 0);
 		return diag;
 	}
-	RTE_LOG(ERR, EAL, "CONFIG: dev_config %p \n",
-				(void *) dev->dev_ops->dev_configure);
 
 	diag = (*dev->dev_ops->dev_configure)(dev);
-	RTE_LOG(INFO, EAL, "CONFIG: after dev_config \n");
 	if (diag != 0) {
 		RTE_PMD_DEBUG_TRACE("port%d dev_configure = %d\n",
 				port_id, diag);
@@ -3444,22 +3440,18 @@ port_init(uint8_t port, struct rte_mempool *mbuf_pool)
 	int retval;
 	uint16_t q;
 
-	RTE_LOG(INFO, EAL, "INIT \n");
 	if (port >= rte_eth_dev_count())
 		return -1;
 
-	RTE_LOG(INFO, EAL, "INITI \n");
 	/* Configure the Ethernet device. */
 	retval = rte_eth_dev_configure(port, rx_rings, tx_rings, &port_conf);
 	if (retval != 0)
 		return retval;
 
-	RTE_LOG(INFO, EAL, "INIT \n");
 	retval = rte_eth_dev_adjust_nb_rx_tx_desc(port, &nb_rxd, &nb_txd);
 	if (retval != 0)
 		return retval;
 
-	RTE_LOG(INFO, EAL, "INIT \n");
 	/* Allocate and set up 1 RX queue per Ethernet port. */
 	for (q = 0; q < rx_rings; q++) {
 		retval = rte_eth_rx_queue_setup(port, q, nb_rxd,
@@ -3468,7 +3460,6 @@ port_init(uint8_t port, struct rte_mempool *mbuf_pool)
 			return retval;
 	}
 
-	RTE_LOG(INFO, EAL, "INIT \n");
 	/* Allocate and set up 1 TX queue per Ethernet port. */
 	for (q = 0; q < tx_rings; q++) {
 		retval = rte_eth_tx_queue_setup(port, q, nb_txd,
@@ -3477,7 +3468,6 @@ port_init(uint8_t port, struct rte_mempool *mbuf_pool)
 			return retval;
 	}
 
-	RTE_LOG(INFO, EAL, "INIT \n");
 	/* Start the Ethernet port. */
 	retval = rte_eth_dev_start(port);
 	if (retval < 0)
@@ -3505,7 +3495,6 @@ rte_eth_dev_cos_setup_ports(unsigned nb_ports,
 {
 	uint8_t portid;
 	for (portid = 0; portid < nb_ports; portid++) {
-		RTE_LOG(INFO, EAL, "Port %d \n", portid);
 		if (port_init(portid, mp) != 0) {
 			return -1;
 		}

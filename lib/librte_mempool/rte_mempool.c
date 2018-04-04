@@ -137,6 +137,7 @@ mempool_add_elem(struct rte_mempool *mp, void *obj, phys_addr_t physaddr)
 	hdr = RTE_PTR_SUB(obj, sizeof(*hdr));
 	hdr->mp = mp;
 	hdr->physaddr = physaddr;
+
 	STAILQ_INSERT_TAIL(&mp->elt_list, hdr, next);
 	mp->populated_size++;
 
@@ -811,7 +812,7 @@ rte_mempool_create_empty(const char *name, unsigned n, unsigned elt_size,
 	RTE_SET_USED(socket_id);
 	/* mz = rte_memzone_reserve(mz_name, mempool_size, socket_id, mz_flags); */
 	mz = simple_memzone_create(mz_name, mempool_size);
-	RTE_LOG(INFO, MEMPOOL, "MZ: %d \n", (mz != NULL));
+	RTE_ASSERT(mz != NULL);
 	if (mz == NULL)
 		goto exit_unlock;
 

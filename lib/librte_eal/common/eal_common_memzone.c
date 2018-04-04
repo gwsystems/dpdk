@@ -497,7 +497,6 @@ simple_memzone_create(const char *name, size_t size) {
 	struct rte_memzone *mz;
 	void * mz_addr;
 
-	RTE_LOG(INFO, EAL, "simple memzone\n");
 	mz = get_next_free_memzone();
 	if (!mz) {
 		RTE_LOG(ERR, EAL, "ERR: simple memzone\n");

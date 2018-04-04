@@ -264,7 +264,6 @@ rte_pci_probe_one_driver(struct rte_pci_driver *dr,
 				(dr->drv_flags & RTE_PCI_DRV_KEEP_MAPPED_RES)))
 			rte_pci_unmap_device(dev);
 	}
-	RTE_LOG(INFO, EAL, "Dev: %s, dr: %s \n successfully probed\n", dev->name, dr->driver.name);
 
 	return ret;
 }

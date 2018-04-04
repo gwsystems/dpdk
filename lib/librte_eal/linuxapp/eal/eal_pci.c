@@ -729,14 +729,5 @@ rte_pci_scan(void) {
 				/* } */	/* } */
 	}
 	RTE_LOG(INFO, EAL, "Scan found %d devices\n", dev_num);
-	TAILQ_FOREACH(rte_dev, &rte_pci_bus.device_list, next) {
-		RTE_LOG(INFO, EAL, "%x:%x:%x vendor: %x device: %x\n", rte_dev->addr.bus, rte_dev->addr.devid,
-				rte_dev->addr.function, rte_dev->id.vendor_id, rte_dev->id.device_id);
-		for (j = 0; j < PCI_MAX_RESOURCE; j++) {
-			if (rte_dev->mem_resource[j].phys_addr)
-				RTE_LOG(INFO, EAL, "\tRegion %d: %x [%x]\n", j, (unsigned int)rte_dev->mem_resource[j].phys_addr,
-						(unsigned int)rte_dev->mem_resource[j].len);
-		}
-	}
 	return 0;
 }
