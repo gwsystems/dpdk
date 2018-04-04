@@ -35,7 +35,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 #
 LIB = librte_mempool_ring.a
 
-CFLAGS += -O3
+CFLAGS += -O2
 CFLAGS += $(WERROR_FLAGS)
 
 EXPORT_MAP := rte_mempool_ring_version.map
