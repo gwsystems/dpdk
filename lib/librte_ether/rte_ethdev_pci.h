@@ -37,6 +37,7 @@
 #include <rte_malloc.h>
 #include <rte_pci.h>
 #include <rte_ethdev.h>
+#include "cos_eal_pci.h"
 
 /**
  * Copy pci device info to the Ethernet device data.
@@ -103,7 +104,7 @@ rte_eth_dev_pci_allocate(struct rte_pci_device *dev, size_t private_data_size)
 			/* eth_dev->data->dev_private = rte_zmalloc_socket(name, */
 				/* private_data_size, RTE_CACHE_LINE_SIZE, */
 				/* dev->device.numa_node); */
-			eth_dev->data->dev_private = malloc(private_data_size);
+			eth_dev->data->dev_private = cos_mem_alloc(private_data_size, 1);
 			if (!eth_dev->data->dev_private) {
 				rte_eth_dev_release_port(eth_dev);
 				return NULL;

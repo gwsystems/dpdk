@@ -52,11 +52,12 @@
 #include <rte_malloc.h>
 #include "malloc_elem.h"
 #include "malloc_heap.h"
-
+#include "cos_eal_pci.h"
 
 /* Free the memory space back to heap */
 void rte_free(void *addr)
 {
+	rte_panic("rte free not implemented\n");
 	if (addr == NULL) return;
 	return free(addr);
 	if (malloc_elem_free(malloc_elem_from_data(addr)) < 0)
@@ -75,7 +76,7 @@ rte_malloc_socket(const char *type, size_t size, unsigned align, int socket_arg)
 
 	/* RSK: simplified rte_malloc until we decide to plug in hugepages */
 	if (size == 0) return NULL;
-	ret = malloc(size);
+	ret = cos_mem_alloc(size, 1);
 	if (ret) memset(ret, 0, size);
 	return ret;
 

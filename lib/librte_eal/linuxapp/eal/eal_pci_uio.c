@@ -309,7 +309,7 @@ pci_uio_alloc_resource(struct rte_pci_device *dev,
 	/* allocate the mapping details for secondary processes*/
 		/*  RSK should use rte_malloc library once memory is setup*/
 	/* *uio_res = rte_zmalloc("UIO_RES", sizeof(**uio_res), 0); */
-	*uio_res = malloc(sizeof(**uio_res));
+	*uio_res = cos_mem_alloc(sizeof(**uio_res), 1);
 	if (*uio_res == NULL) {
 		RTE_LOG(ERR, EAL,
 			"%s(): cannot store uio mmap details\n", __func__);
@@ -355,7 +355,7 @@ pci_uio_map_resource_by_index(struct rte_pci_device *dev, int res_idx,
 	/* allocate memory to keep path */
 	/*  RSK  */
 	/* maps[map_idx].path = rte_malloc(NULL, strlen(devname) + 1, 0); */
-	maps[map_idx].path = malloc(strlen(devname) + 1);
+	maps[map_idx].path = cos_mem_alloc(strlen(devname) + 1, 1);
 	/* if (maps[map_idx].path == NULL) { */
 	/* 	RTE_LOG(ERR, EAL, "Cannot allocate memory for path: %s\n", */
 	/* 			strerror(errno)); */

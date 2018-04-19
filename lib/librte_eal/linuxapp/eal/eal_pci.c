@@ -227,7 +227,7 @@ pci_scan_one(const char *dirname, const struct rte_pci_addr *addr)
 	char driver[PATH_MAX];
 	int ret;
 
-	dev = malloc(sizeof(*dev));
+	dev = cos_mem_alloc(sizeof(*dev), 1);
 	if (dev == NULL)
 		return -1;
 
@@ -658,7 +658,7 @@ rte_pci_scan(void) {
 
 	/* Be careful about memory here! */
 	/* Free this list when pci_bus is closed? */
-	pci_device_list = malloc(sizeof(struct rte_pci_device) * dev_num);
+	pci_device_list = cos_mem_alloc(sizeof(struct rte_pci_device) * dev_num, 1);
 	if (!pci_device_list) return -1;
 	memset(pci_device_list, 0, sizeof(struct rte_pci_device) * dev_num);
 	RTE_LOG(INFO, EAL, "scan called\n");

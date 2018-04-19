@@ -759,7 +759,6 @@ rte_eal_init(int argc, char **argv)
 	int i, fctret, ret;
 	cos_eal_thd_t thread_id;
 	static rte_atomic32_t run_once = RTE_ATOMIC32_INIT(0);
-	const char *logid;
 	char cpuset[RTE_CPU_AFFINITY_STR_LEN];
 	char thread_name[RTE_MAX_THREAD_NAME_LEN];
 
@@ -775,9 +774,6 @@ rte_eal_init(int argc, char **argv)
 		rte_errno = EALREADY;
 		return -1;
 	}
-
-	logid = strrchr(argv[0], '/');
-	logid = strdup(logid ? logid + 1: argv[0]);
 
 	thread_id = cos_eal_thd_curr();
 
@@ -838,13 +834,6 @@ rte_eal_init(int argc, char **argv)
 	rte_srand(rte_rdtsc());
 
 	rte_config_init();
-
-	if (rte_eal_log_init(logid, internal_config.syslog_facility) < 0) {
-		rte_eal_init_alert("Cannot init logging.");
-		rte_errno = ENOMEM;
-		rte_atomic32_clear(&run_once);
-		return -1;
-	}
 
 #ifdef VFIO_PRESENT
 	if (rte_eal_vfio_setup() < 0) {

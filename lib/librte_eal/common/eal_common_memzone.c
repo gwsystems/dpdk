@@ -504,7 +504,7 @@ simple_memzone_create(const char *name, size_t size) {
 	}
 
 	/* RSK hack here: I want memzone to be page aligned */
-	mz_addr = malloc(size + 4096);
+	mz_addr = cos_mem_alloc(size, 0);
 	mz_addr = RTE_PTR_ALIGN_CEIL(mz_addr, 4096);
 
 	snprintf(mz->name, sizeof(mz->name), "%s", name);

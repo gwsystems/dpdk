@@ -44,6 +44,7 @@
 #include <rte_per_lcore.h>
 
 #include "eal_private.h"
+#include "cos_eal_pci.h"
 
 /* global log structure */
 struct rte_logs rte_logs = {
@@ -215,12 +216,13 @@ rte_log_lookup(const char *name)
 static int
 __rte_log_register(const char *name, int id)
 {
-	char *dup_name = strdup(name);
+	/* char *dup_name = strdup(name); */
 
-	if (dup_name == NULL)
-		return -ENOMEM;
+	/* if (dup_name == NULL) */
+	/* 	return -ENOMEM; */
 
-	rte_logs.dynamic_types[id].name = dup_name;
+	/* rte_logs.dynamic_types[id].name = dup_name; */
+	(void)name;
 	rte_logs.dynamic_types[id].loglevel = RTE_LOG_DEBUG;
 
 	return id;
@@ -289,6 +291,8 @@ static const struct logtype logtype_strings[] = {
 	{RTE_LOGTYPE_USER8,      "user8"}
 };
 
+static char __log_hack[256];
+
 RTE_INIT(rte_log_init);
 static void
 rte_log_init(void)
@@ -301,8 +305,7 @@ rte_log_init(void)
 	rte_log_set_global_level(RTE_LOG_LEVEL);
 #endif
 
-	rte_logs.dynamic_types = calloc(RTE_LOGTYPE_FIRST_EXT_ID,
-		sizeof(struct rte_log_dynamic_type));
+	rte_logs.dynamic_types = (void *)&__log_hack;
 	if (rte_logs.dynamic_types == NULL)
 		return;
 
@@ -356,7 +359,8 @@ rte_log_dump(FILE *f)
 int
 rte_vlog(uint32_t level, uint32_t logtype, const char *format, va_list ap)
 {
-	int ret;
+	char    s[128];
+	size_t  ret, len = 128;
 	FILE *f = rte_logs.file;
 	if (f == NULL) {
 		f = default_log_stream;
@@ -383,8 +387,8 @@ rte_vlog(uint32_t level, uint32_t logtype, const char *format, va_list ap)
 	RTE_PER_LCORE(log_cur_msg).loglevel = level;
 	RTE_PER_LCORE(log_cur_msg).logtype = logtype;
 
-	ret = vfprintf(f, format, ap);
-	fflush(f);
+	ret = vsnprintf(s, len, format, ap);
+	cos_dpdk_print(s, ret);
 	return ret;
 }
 
