@@ -930,66 +930,12 @@ rte_eal_init(int argc, char **argv)
 	RTE_SET_USED(i);
 	RTE_SET_USED(thread_name);
 
-	/*  RSK multicore */
-
-	/* RTE_LCORE_FOREACH_SLAVE(i) { */
-
-	/* */
-	/* 	 * create communication pipes between master thread */
-	/* 	 * and children */
-	/* 	 *1/ */
-	/* 	if (pipe(lcore_config[i].pipe_master2slave) < 0) */
-	/* 		rte_panic("Cannot create pipe\n"); */
-	/* 	if (pipe(lcore_config[i].pipe_slave2master) < 0) */
-	/* 		rte_panic("Cannot create pipe\n"); */
-
-	/* 	lcore_config[i].state = WAIT; */
-
-	/* 	/1* create a thread for each lcore *1/ */
-	/* 	ret = cos_eal_thd_create(&lcore_config[i].thread_id, eal_thread_loop, NULL); */
-	/* 	if (ret != 0) */
-	/* 		rte_panic("Cannot create thread\n"); */
-
-	/* 	/1* Set thread_name for aid in debugging. *1/ */
-	/* 	snprintf(thread_name, RTE_MAX_THREAD_NAME_LEN, */
-	/* 		"lcore-slave-%d", i); */
-	/* 	ret = rte_thread_setname(lcore_config[i].thread_id, */
-	/* 					thread_name); */
-	/* 	if (ret != 0) */
-	/* 		RTE_LOG(DEBUG, EAL, */
-	/* 			"Cannot set name for lcore thread\n"); */
-	/* } */
-
-	/*
-	 * Launch a dummy function on all slave lcores, so that master lcore
-	 * knows they are all ready when this function returns.
-	 */
-	/* rte_eal_mp_remote_launch(sync_func, NULL, SKIP_MASTER); */
-	/* rte_eal_mp_wait_lcore(); */
-
-	/* initialize services so vdevs register service during bus_probe. */
-	/* ret = rte_service_init(); */
-	/* if (ret) { */
-	/* 	rte_eal_init_alert("rte_service_init() failed\n"); */
-	/* 	rte_errno = ENOEXEC; */
-	/* 	return -1; */
-	/* } */
-
 	/* Probe all the buses and devices/drivers on them */
 	if (rte_bus_probe()) {
 		rte_eal_init_alert("Cannot probe devices\n");
 		rte_errno = ENOTSUP;
 		return -1;
 	}
-
-	/* initialize default service/lcore mappings and start running. Ignore
-	 * -ENOTSUP, as it indicates no service coremask passed to EAL.
-	 */
-	/* ret = rte_service_start_with_defaults(); */
-	/* if (ret < 0 && ret != -ENOTSUP) { */
-	/* 	rte_errno = ENOEXEC; */
-	/* 	return -1; */
-	/* } */
 
 	rte_eal_mcfg_complete();
 

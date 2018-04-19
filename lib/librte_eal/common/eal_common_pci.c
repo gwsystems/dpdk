@@ -325,9 +325,9 @@ pci_probe_all_drivers(struct rte_pci_device *dev)
 
 	/*  RSK */
 	/* e1000 emulated */
-	force_link1();
+	/* force_link1(); */
 	/*  i40e driver */
-	force_link2();
+	/* force_link2(); */
 	/* mempool ring driver */
 	force_link3();
 	force_link_ixgbe();
