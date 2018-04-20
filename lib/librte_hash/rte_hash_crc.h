@@ -483,6 +483,7 @@ rte_hash_crc_set_alg(uint8_t alg)
 static inline void __attribute__((constructor))
 rte_hash_crc_init_alg(void)
 {
+	return ;		/* ryx: remove this. this is only for qemu */
 	rte_hash_crc_set_alg(CRC32_SSE42_x64);
 }
 
