@@ -79,6 +79,7 @@
 #include "base/ixgbe_dcb.h"
 #include "base/ixgbe_common.h"
 #include "ixgbe_rxtx.h"
+#include "cos_eal_pci.h"
 
 #ifdef RTE_LIBRTE_IEEE1588
 #define IXGBE_TX_IEEE1588_TMST PKT_TX_IEEE1588_TMST
@@ -131,7 +132,7 @@ ixgbe_tx_free_bufs(struct ixgbe_tx_queue *txq)
 {
 	struct ixgbe_tx_entry *txep;
 	uint32_t status;
-	int i, nb_free = 0;
+	int i, nb_free = 0, j;
 	struct rte_mbuf *m, *free[RTE_IXGBE_TX_MAX_FREE_BUF_SZ];
 
 	/* check DD bit on threshold descriptor */
@@ -155,6 +156,9 @@ ixgbe_tx_free_bufs(struct ixgbe_tx_queue *txq)
 
 		if (nb_free >= RTE_IXGBE_TX_MAX_FREE_BUF_SZ ||
 		    (nb_free > 0 && m->pool != free[0]->pool)) {
+			for(j=0; j<nb_free; j++) {
+				cos_tx_cb(free[j]->userdata);
+			}
 			rte_mempool_put_bulk(free[0]->pool,
 					     (void **)free, nb_free);
 			nb_free = 0;
@@ -163,8 +167,12 @@ ixgbe_tx_free_bufs(struct ixgbe_tx_queue *txq)
 		free[nb_free++] = m;
 	}
 
-	if (nb_free > 0)
+	if (nb_free > 0) {
+		for(j=0; j<nb_free; j++) {
+			cos_tx_cb(free[j]->userdata);
+		}
 		rte_mempool_put_bulk(free[0]->pool, (void **)free, nb_free);
+	}
 
 	/* buffers were freed, update counters */
 	txq->nb_tx_free = (uint16_t)(txq->nb_tx_free + txq->tx_rs_thresh);
