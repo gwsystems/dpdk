@@ -39,9 +39,9 @@
 #ifndef _RTE_CUCKOO_HASH_H_
 #define _RTE_CUCKOO_HASH_H_
 
-#if defined(RTE_ARCH_X86)
-#include "rte_cmp_x86.h"
-#endif
+/* #if defined(RTE_ARCH_X86) */
+/* #include "rte_cmp_x86.h" */
+/* #endif */
 
 #if defined(RTE_ARCH_ARM64)
 #include "rte_cmp_arm64.h"
@@ -66,7 +66,8 @@
 #define DEFAULT_HASH_FUNC       rte_jhash
 #endif
 
-#if defined(RTE_ARCH_X86) || defined(RTE_ARCH_ARM64)
+/* #if defined(RTE_ARCH_X86) || defined(RTE_ARCH_ARM64) */
+#if 0
 /*
  * All different options to select a key compare function,
  * based on the key size and custom function.
