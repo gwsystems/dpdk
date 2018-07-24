@@ -45,7 +45,7 @@ CFLAGS += -I$(SRCDIR)/include
 CFLAGS += -I$(RTE_SDK)/lib/librte_eal/common
 CFLAGS += -I$(RTE_SDK)/lib/librte_eal/common/include
 # RSK Disable optimizations
-CFLAGS += $(WERROR_FLAGS) -O0
+CFLAGS += $(WERROR_FLAGS) -O3
 
 LDLIBS += -ldl
 # LDLIBS += -lpthread

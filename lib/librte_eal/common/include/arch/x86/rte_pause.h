@@ -40,7 +40,10 @@ extern "C" {
 
 #include "generic/rte_pause.h"
 
-#include <emmintrin.h>
+/* #include <emmintrin.h> */
+static inline void _mm_pause(void)
+{ __asm__ __volatile__("pause" ::: "memory"); }
+
 static inline void rte_pause(void)
 {
 	_mm_pause();

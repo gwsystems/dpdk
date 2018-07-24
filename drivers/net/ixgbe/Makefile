@@ -36,7 +36,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 #
 LIB = librte_pmd_ixgbe.a
 
-CFLAGS += -O2
+CFLAGS += -O3 -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx
 CFLAGS += $(WERROR_FLAGS)
 
 EXPORT_MAP := rte_pmd_ixgbe_version.map

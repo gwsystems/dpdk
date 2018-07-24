@@ -53,7 +53,7 @@
 
 #else
 
-#include <x86intrin.h>
+/* #include <x86intrin.h> */
 
 #endif
 
@@ -61,7 +61,14 @@
 extern "C" {
 #endif
 
-typedef __m128i xmm_t;
+/* typedef __m128i xmm_t; */
+typedef struct {
+	unsigned long long m128i[2];
+} __m128i;;
+
+typedef struct {
+	int m128i[4];
+} xmm_t;
 
 #define	XMM_SIZE	(sizeof(xmm_t))
 #define	XMM_MASK	(XMM_SIZE - 1)

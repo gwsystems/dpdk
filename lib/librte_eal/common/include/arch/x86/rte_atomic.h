@@ -40,7 +40,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <rte_common.h>
-#include <emmintrin.h>
+/* #include <emmintrin.h> */
 #include "generic/rte_atomic.h"
 
 #if RTE_MAX_LCORE == 1
@@ -48,6 +48,15 @@ extern "C" {
 #else
 #define MPLOCKED        "lock ; "       /**< Insert MP lock prefix. */
 #endif
+
+static inline void _mm_mfence(void)
+{ __asm__ __volatile__("mfence" ::: "memory"); }
+
+static inline void _mm_sfence(void)
+{ __asm__ __volatile__("sfence" ::: "memory"); }
+
+static inline void _mm_lfence(void)
+{ __asm__ __volatile__("lfence" ::: "memory"); }
 
 #define	rte_mb() _mm_mfence()
 

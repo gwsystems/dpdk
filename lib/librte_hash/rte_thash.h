@@ -56,17 +56,17 @@ extern "C" {
 #include <rte_ip.h>
 #include <rte_common.h>
 
-#if defined(RTE_ARCH_X86) || defined(RTE_MACHINE_CPUFLAG_NEON)
-#include <rte_vect.h>
-#endif
+/* #if defined(RTE_ARCH_X86) || defined(RTE_MACHINE_CPUFLAG_NEON) */
+/* #include <rte_vect.h> */
+/* #endif */
 
-#ifdef RTE_ARCH_X86
-/* Byte swap mask used for converting IPv6 address
- * 4-byte chunks to CPU byte order
- */
-static const __m128i rte_thash_ipv6_bswap_mask = {
-		0x0405060700010203ULL, 0x0C0D0E0F08090A0BULL};
-#endif
+/* #ifdef RTE_ARCH_X86 */
+/* /\* Byte swap mask used for converting IPv6 address */
+/*  * 4-byte chunks to CPU byte order */
+/*  *\/ */
+/* static const __m128i rte_thash_ipv6_bswap_mask = { */
+/* 		0x0405060700010203ULL, 0x0C0D0E0F08090A0BULL}; */
+/* #endif */
 
 /**
  * length in dwords of input tuple to
@@ -169,19 +169,19 @@ rte_convert_rss_key(const uint32_t *orig, uint32_t *targ, int len)
 static inline void
 rte_thash_load_v6_addrs(const struct ipv6_hdr *orig, union rte_thash_tuple *targ)
 {
-#ifdef RTE_ARCH_X86
-	__m128i ipv6 = _mm_loadu_si128((const __m128i *)orig->src_addr);
-	*(__m128i *)targ->v6.src_addr =
-			_mm_shuffle_epi8(ipv6, rte_thash_ipv6_bswap_mask);
-	ipv6 = _mm_loadu_si128((const __m128i *)orig->dst_addr);
-	*(__m128i *)targ->v6.dst_addr =
-			_mm_shuffle_epi8(ipv6, rte_thash_ipv6_bswap_mask);
-#elif defined(RTE_MACHINE_CPUFLAG_NEON)
-	uint8x16_t ipv6 = vld1q_u8((uint8_t const *)orig->src_addr);
-	vst1q_u8((uint8_t *)targ->v6.src_addr, vrev32q_u8(ipv6));
-	ipv6 = vld1q_u8((uint8_t const *)orig->dst_addr);
-	vst1q_u8((uint8_t *)targ->v6.dst_addr, vrev32q_u8(ipv6));
-#else
+/* #ifdef RTE_ARCH_X86 */
+/* 	__m128i ipv6 = _mm_loadu_si128((const __m128i *)orig->src_addr); */
+/* 	*(__m128i *)targ->v6.src_addr = */
+/* 			_mm_shuffle_epi8(ipv6, rte_thash_ipv6_bswap_mask); */
+/* 	ipv6 = _mm_loadu_si128((const __m128i *)orig->dst_addr); */
+/* 	*(__m128i *)targ->v6.dst_addr = */
+/* 			_mm_shuffle_epi8(ipv6, rte_thash_ipv6_bswap_mask); */
+/* #elif defined(RTE_MACHINE_CPUFLAG_NEON) */
+/* 	uint8x16_t ipv6 = vld1q_u8((uint8_t const *)orig->src_addr); */
+/* 	vst1q_u8((uint8_t *)targ->v6.src_addr, vrev32q_u8(ipv6)); */
+/* 	ipv6 = vld1q_u8((uint8_t const *)orig->dst_addr); */
+/* 	vst1q_u8((uint8_t *)targ->v6.dst_addr, vrev32q_u8(ipv6)); */
+/* #else */
 	int i;
 	for (i = 0; i < 4; i++) {
 		*((uint32_t *)targ->v6.src_addr + i) =
@@ -189,7 +189,7 @@ rte_thash_load_v6_addrs(const struct ipv6_hdr *orig, union rte_thash_tuple *targ
 		*((uint32_t *)targ->v6.dst_addr + i) =
 			rte_be_to_cpu_32(*((const uint32_t *)orig->dst_addr + i));
 	}
-#endif
+/* #endif */
 }
 
 /**
