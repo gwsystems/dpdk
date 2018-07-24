@@ -154,10 +154,13 @@ ixgbe_tx_free_bufs(struct ixgbe_tx_queue *txq)
 		if (unlikely(m == NULL))
 			continue;
 
-		if (nb_free >= RTE_IXGBE_TX_MAX_FREE_BUF_SZ ||
-		    (nb_free > 0 && m->pool != free[0]->pool)) {
+		/* if (nb_free >= RTE_IXGBE_TX_MAX_FREE_BUF_SZ || */
+		/*     (nb_free > 0 && m->pool != free[0]->pool)) { */
+
+		if (nb_free >= RTE_IXGBE_TX_MAX_FREE_BUF_SZ) {
 			for(j=0; j<nb_free; j++) {
 				cos_tx_cb(free[j]->userdata);
+				/* rte_mempool_put(free[j]->pool, (void *)free[j]); */
 			}
 			rte_mempool_put_bulk(free[0]->pool,
 					     (void **)free, nb_free);
@@ -170,8 +173,10 @@ ixgbe_tx_free_bufs(struct ixgbe_tx_queue *txq)
 	if (nb_free > 0) {
 		for(j=0; j<nb_free; j++) {
 			cos_tx_cb(free[j]->userdata);
+			/* rte_mempool_put(free[j]->pool, (void *)free[j]); */
 		}
-		rte_mempool_put_bulk(free[0]->pool, (void **)free, nb_free);
+		rte_mempool_put_bulk(free[0]->pool,
+				     (void **)free, nb_free);
 	}
 
 	/* buffers were freed, update counters */
@@ -224,6 +229,7 @@ tx1(volatile union ixgbe_adv_tx_desc *txdp, struct rte_mbuf **pkts)
 			rte_cpu_to_le_32((uint32_t)DCMD_DTYP_FLAGS | pkt_len);
 	txdp->read.olinfo_status =
 			rte_cpu_to_le_32(pkt_len << IXGBE_ADVTXD_PAYLEN_SHIFT);
+	/* RTE_LOG(INFO, EAL, "dbg 1 ixgb tx 1 pa %llx buf %x bpa %llx off %d\n", buf_dma_addr, (int)((*pkts)->buf_addr), (*pkts)->buf_physaddr, (int)(*pkts)->data_off); */
 	rte_prefetch0(&(*pkts)->pool);
 }
 
@@ -656,18 +662,12 @@ ixgbe_xmit_pkts(void *tx_queue, struct rte_mbuf **tx_pkts,
 	uint32_t cmd_type_len;
 	uint32_t pkt_len;
 	uint16_t slen;
-	uint64_t ol_flags;
 	uint16_t tx_id;
 	uint16_t tx_last;
 	uint16_t nb_tx;
 	uint16_t nb_used;
-	uint64_t tx_ol_req;
-	uint32_t ctx = 0;
 	uint32_t new_ctx;
-	union ixgbe_tx_offload tx_offload;
 
-	tx_offload.data[0] = 0;
-	tx_offload.data[1] = 0;
 	txq = tx_queue;
 	sw_ring = txq->sw_ring;
 	txr     = txq->tx_ring;
@@ -681,36 +681,12 @@ ixgbe_xmit_pkts(void *tx_queue, struct rte_mbuf **tx_pkts,
 
 	rte_prefetch0(&txe->mbuf->pool);
 
+
 	/* TX loop */
 	for (nb_tx = 0; nb_tx < nb_pkts; nb_tx++) {
 		new_ctx = 0;
 		tx_pkt = *tx_pkts++;
 		pkt_len = tx_pkt->pkt_len;
-
-		/*
-		 * Determine how many (if any) context descriptors
-		 * are needed for offload functionality.
-		 */
-		ol_flags = tx_pkt->ol_flags;
-
-		/* If hardware offload required */
-		tx_ol_req = ol_flags & IXGBE_TX_OFFLOAD_MASK;
-		if (tx_ol_req) {
-			tx_offload.l2_len = tx_pkt->l2_len;
-			tx_offload.l3_len = tx_pkt->l3_len;
-			tx_offload.l4_len = tx_pkt->l4_len;
-			tx_offload.vlan_tci = tx_pkt->vlan_tci;
-			tx_offload.tso_segsz = tx_pkt->tso_segsz;
-			tx_offload.outer_l2_len = tx_pkt->outer_l2_len;
-			tx_offload.outer_l3_len = tx_pkt->outer_l3_len;
-
-			/* If new context need be built or reuse the exist ctx. */
-			ctx = what_advctx_update(txq, tx_ol_req,
-				tx_offload);
-			/* Only allocate context descriptor if required*/
-			new_ctx = (ctx == IXGBE_CTX_NUM);
-			ctx = txq->ctx_curr;
-		}
 
 		/*
 		 * Keep track of how many descriptors are used this loop
@@ -798,88 +774,10 @@ ixgbe_xmit_pkts(void *tx_queue, struct rte_mbuf **tx_pkts,
 				}
 			}
 		}
-
-		/*
-		 * By now there are enough free TX descriptors to transmit
-		 * the packet.
-		 */
-
-		/*
-		 * Set common flags of all TX Data Descriptors.
-		 *
-		 * The following bits must be set in all Data Descriptors:
-		 *   - IXGBE_ADVTXD_DTYP_DATA
-		 *   - IXGBE_ADVTXD_DCMD_DEXT
-		 *
-		 * The following bits must be set in the first Data Descriptor
-		 * and are ignored in the other ones:
-		 *   - IXGBE_ADVTXD_DCMD_IFCS
-		 *   - IXGBE_ADVTXD_MAC_1588
-		 *   - IXGBE_ADVTXD_DCMD_VLE
-		 *
-		 * The following bits must only be set in the last Data
-		 * Descriptor:
-		 *   - IXGBE_TXD_CMD_EOP
-		 *
-		 * The following bits can be set in any Data Descriptor, but
-		 * are only set in the last Data Descriptor:
-		 *   - IXGBE_TXD_CMD_RS
-		 */
 		cmd_type_len = IXGBE_ADVTXD_DTYP_DATA |
 			IXGBE_ADVTXD_DCMD_IFCS | IXGBE_ADVTXD_DCMD_DEXT;
 
-#ifdef RTE_LIBRTE_IEEE1588
-		if (ol_flags & PKT_TX_IEEE1588_TMST)
-			cmd_type_len |= IXGBE_ADVTXD_MAC_1588;
-#endif
-
 		olinfo_status = 0;
-		if (tx_ol_req) {
-
-			if (ol_flags & PKT_TX_TCP_SEG) {
-				/* when TSO is on, paylen in descriptor is the
-				 * not the packet len but the tcp payload len */
-				pkt_len -= (tx_offload.l2_len +
-					tx_offload.l3_len + tx_offload.l4_len);
-			}
-
-			/*
-			 * Setup the TX Advanced Context Descriptor if required
-			 */
-			if (new_ctx) {
-				volatile struct ixgbe_adv_tx_context_desc *
-				    ctx_txd;
-
-				ctx_txd = (volatile struct
-				    ixgbe_adv_tx_context_desc *)
-				    &txr[tx_id];
-
-				txn = &sw_ring[txe->next_id];
-				rte_prefetch0(&txn->mbuf->pool);
-
-				if (txe->mbuf != NULL) {
-					rte_pktmbuf_free_seg(txe->mbuf);
-					txe->mbuf = NULL;
-				}
-
-				ixgbe_set_xmit_ctx(txq, ctx_txd, tx_ol_req,
-					tx_offload);
-
-				txe->last_id = tx_last;
-				tx_id = txe->next_id;
-				txe = txn;
-			}
-
-			/*
-			 * Setup the TX Advanced Data Descriptor,
-			 * This path will go through
-			 * whatever new/reuse the context descriptor
-			 */
-			cmd_type_len  |= tx_desc_ol_flags_to_cmdtype(ol_flags);
-			olinfo_status |= tx_desc_cksum_flags_to_olinfo(ol_flags);
-			olinfo_status |= ctx << IXGBE_ADVTXD_IDX_SHIFT;
-		}
-
 		olinfo_status |= (pkt_len << IXGBE_ADVTXD_PAYLEN_SHIFT);
 
 		m_seg = tx_pkt;
@@ -888,13 +786,17 @@ ixgbe_xmit_pkts(void *tx_queue, struct rte_mbuf **tx_pkts,
 			txn = &sw_ring[txe->next_id];
 			rte_prefetch0(&txn->mbuf->pool);
 
-			if (txe->mbuf != NULL)
+			if (txe->mbuf != NULL) {
+				cos_tx_cb(txe->mbuf->userdata);
 				rte_pktmbuf_free_seg(txe->mbuf);
+			}
+
 			txe->mbuf = m_seg;
 
 			/*
 			 * Set up Transmit Data Descriptor.
 			 */
+
 			slen = m_seg->data_len;
 			buf_dma_addr = rte_mbuf_data_dma_addr(m_seg);
 			txd->read.buffer_addr =
